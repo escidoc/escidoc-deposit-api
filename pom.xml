@@ -40,6 +40,40 @@
 					</execution>
 				</executions>
 			</plugin>
+			
+			<plugin>
+				<groupId>com.mycila.maven-license-plugin</groupId>
+				<artifactId>maven-license-plugin</artifactId>
+				<version>1.9.0</version>
+				<configuration>
+					<header>${basedir}/etc/header.txt</header>
+					<strictCheck>true</strictCheck>
+					<failIfMissing>false</failIfMissing>
+					<includes>
+						<include>src/**</include>
+						<include>**/test/**</include>
+					</includes>
+					<excludes>
+						<exclude>target/**</exclude>
+						<exclude>src/main/java/biz/**</exclude>
+						<exclude>src/main/resources/**</exclude>
+						<exclude>src/main/javadoc/**</exclude>
+						<exclude>src/main/webapp/**</exclude>
+						<exclude>src/main/assembly/**</exclude>
+						<exclude>src/site/**</exclude>
+						<exclude>src/test/javadoc/**</exclude>
+						<exclude>src/test/site/**</exclude>
+						<exclude>.clover/**</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
 		</plugins>
 	</build>
