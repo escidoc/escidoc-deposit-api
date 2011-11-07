@@ -157,7 +157,7 @@ public class ByNameIngester extends AbstractIngester {
         // properties
         item.getProperties().setContentModel(new ContentModelRef(getItemContentModel()));
         item.getProperties().setContext(new ContextRef(getContext()));
-        if (getInitialLifecycleStatus().equals("released")) {
+        if (getInitialLifecycleStatus().equals(PublicStatus.RELEASED)) {
             item.getProperties().setPid("no:pid/test");
         }
         // this.getInitialLifecycleStatus()
@@ -189,7 +189,7 @@ public class ByNameIngester extends AbstractIngester {
         // properties
         container.getProperties().setContentModel(new ContentModelRef(getContainerContentModel()));
         container.getProperties().setContext(new ContextRef(getContext()));
-        if (getInitialLifecycleStatus().equals("released")) {
+        if (getInitialLifecycleStatus().equals(PublicStatus.RELEASED)) {
             container.getProperties().setPid("no:pid/test");
         }
         container.getProperties().setPublicStatus(PublicStatus.OPENED);

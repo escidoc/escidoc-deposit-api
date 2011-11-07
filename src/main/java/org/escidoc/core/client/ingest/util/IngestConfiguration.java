@@ -28,6 +28,12 @@
  */
 package org.escidoc.core.client.ingest.util;
 
+import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
+import org.escidoc.core.client.ingest.ws.WebService;
+import org.escidoc.core.client.ingest.ws.WebServiceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -39,12 +45,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
-
-import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
-import org.escidoc.core.client.ingest.ws.WebService;
-import org.escidoc.core.client.ingest.ws.WebServiceFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class IngestConfiguration {
 

@@ -62,6 +62,7 @@ import de.escidoc.core.resources.common.MetadataRecord;
 import de.escidoc.core.resources.common.MetadataRecords;
 import de.escidoc.core.resources.common.Result;
 import de.escidoc.core.resources.common.TaskParam;
+import de.escidoc.core.resources.common.properties.PublicStatus;
 import de.escidoc.core.resources.common.reference.ContentModelRef;
 import de.escidoc.core.resources.common.reference.ContextRef;
 import de.escidoc.core.resources.om.item.Item;
@@ -138,8 +139,8 @@ public class FileIngester extends AbstractIngester {
         }
 
         try {
-            this.seteSciDocInfrastructureBaseUrl(new URL(eSciDocInfrastructureBaseUrl));
-            this.setUserHandle(userHandle);
+            seteSciDocInfrastructureBaseUrl(new URL(eSciDocInfrastructureBaseUrl));
+            setUserHandle(userHandle);
         }
         catch (ConfigurationException e) {
             LOG.error("Can not set infrastructure URL or user handle creating new Ingester.", e);
@@ -148,7 +149,7 @@ public class FileIngester extends AbstractIngester {
             LOG.error("Invalid infrastructure URL.", mfue);
         }
         this.parentId = parentId;
-        this.files = new Vector<File>();
+        files = new Vector<File>();
 
         loadConfiguration();
     }
@@ -163,13 +164,13 @@ public class FileIngester extends AbstractIngester {
     @Override
     protected final void ingestHook() throws ConfigurationException, IngestException {
 
-        if (this.files.isEmpty()) {
+        if (files.isEmpty()) {
             throw new ConfigurationException("No files to ingest.");
         }
-        this.itemIDs = new Vector<String>();
-        Count c = new Count(this.ingestProgressListener);
+        itemIDs = new Vector<String>();
+        Count c = new Count(ingestProgressListener);
 
-        for (File file : this.files) {
+        for (File file : files) {
             try {
                 ingestItem(file);
                 c.increment();
@@ -198,14 +199,14 @@ public class FileIngester extends AbstractIngester {
             }
         }
 
-        if (this.parentId != null) {
+        if (parentId != null) {
             TaskParam taskParam = new TaskParam();
-            for (String itemId : this.itemIDs) {
-                LOG.debug("Adding to parent[" + this.parentId + "]: " + itemId);
+            for (String itemId : itemIDs) {
+                LOG.debug("Adding to parent[" + parentId + "]: " + itemId);
                 taskParam.addResourceRef(itemId);
             }
             try {
-                ContainerHandlerClient chc = new ContainerHandlerClient(this.geteSciDocInfrastructureBaseUrl());
+                ContainerHandlerClient chc = new ContainerHandlerClient(geteSciDocInfrastructureBaseUrl());
                 chc.addMembers(parentId, taskParam);
                 LOG.debug("...added.");
             }
@@ -233,12 +234,12 @@ public class FileIngester extends AbstractIngester {
         Item item = new Item();
 
         // properties
-        item.getProperties().setContentModel(new ContentModelRef(this.getItemContentModel()));
-        item.getProperties().setContext(new ContextRef(this.getContext()));
-        if (this.getInitialLifecycleStatus().equals("released")) {
+        item.getProperties().setContentModel(new ContentModelRef(getItemContentModel()));
+        item.getProperties().setContext(new ContextRef(getContext()));
+        if (getInitialLifecycleStatus().equals(PublicStatus.RELEASED)) {
             item.getProperties().setPid("no:pid/test");
         }
-        item.getProperties().setPublicStatus(this.getInitialLifecycleStatus());
+        item.getProperties().setPublicStatus(getInitialLifecycleStatus());
         item.getProperties().setPublicStatusComment("Item ingested via Ingest Client API");
 
         item.setMetadataRecords(new MetadataRecords());
@@ -247,10 +248,10 @@ public class FileIngester extends AbstractIngester {
         // content
         Component component = new Component();
         component.setProperties(new ComponentProperties());
-        component.getProperties().setContentCategory(this.getContentCategory());
-        component.getProperties().setValidStatus(this.getValidStatus());
-        component.getProperties().setVisibility(this.getVisibility());
-        component.getProperties().setMimeType(this.getMimeType());
+        component.getProperties().setContentCategory(getContentCategory());
+        component.getProperties().setValidStatus(getValidStatus());
+        component.getProperties().setVisibility(getVisibility());
+        component.getProperties().setMimeType(getMimeType());
 
         MetadataRecord contentMd = createContentMetadata(n);
         if (contentMd != null && contentMd.getContent() != null) {
@@ -261,7 +262,7 @@ public class FileIngester extends AbstractIngester {
         ComponentContent content = new ComponentContent();
         content.setStorage(StorageType.INTERNAL_MANAGED);
 
-        URL stagingFile = this.getStagingHandlerClient().upload(n);
+        URL stagingFile = getStagingHandlerClient().upload(n);
 
         content.setXLinkHref(stagingFile.toString());
         component.setContent(content);
@@ -274,7 +275,7 @@ public class FileIngester extends AbstractIngester {
         String itemXml = im.marshalDocument(item);
         String result;
         try {
-            result = this.getIngestHandlerClient().ingest(itemXml);
+            result = getIngestHandlerClient().ingest(itemXml);
         }
         catch (EscidocException e) {
             System.out.println(itemXml);
@@ -286,7 +287,7 @@ public class FileIngester extends AbstractIngester {
         Result r = rm.unmarshalDocument(result);
         String itemId = r.getFirst().getTextContent();
         // Item created = this.getItemHandlerClient().retrieve(itemId);
-        this.itemIDs.add(itemId);
+        itemIDs.add(itemId);
         // n.getResource().setIdentifier(itemId);
         // n.getResource().setObjectType("item");
         // n.getResource().setTitle(n.getName());
@@ -385,7 +386,7 @@ public class FileIngester extends AbstractIngester {
     public void checkConfiguration() throws ConfigurationException {
         super.checkConfiguration();
 
-        if (this.files.isEmpty()) {
+        if (files.isEmpty()) {
             throw new ConfigurationException("Files must be set.");
         }
     }

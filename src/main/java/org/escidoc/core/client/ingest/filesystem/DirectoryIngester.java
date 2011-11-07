@@ -28,10 +28,22 @@
  */
 package org.escidoc.core.client.ingest.filesystem;
 
+import org.escidoc.core.client.ingest.AbstractIngester;
+import org.escidoc.core.client.ingest.exceptions.AlreadyIngestedException;
+import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
+import org.escidoc.core.client.ingest.exceptions.IngestException;
+import org.escidoc.core.client.ingest.ws.WebService;
+import org.escidoc.core.client.ingest.ws.exceptions.ExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -40,18 +52,6 @@ import java.util.Vector;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.escidoc.core.client.ingest.AbstractIngester;
-import org.escidoc.core.client.ingest.exceptions.AlreadyIngestedException;
-import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
-import org.escidoc.core.client.ingest.exceptions.IngestException;
-import org.escidoc.core.client.ingest.util.IngestConfiguration;
-import org.escidoc.core.client.ingest.ws.WebService;
-import org.escidoc.core.client.ingest.ws.exceptions.ExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import de.escidoc.core.client.TransportProtocol;
 import de.escidoc.core.client.exceptions.EscidocException;
@@ -150,8 +150,8 @@ public class DirectoryIngester extends AbstractIngester {
         }
 
         try {
-            this.seteSciDocInfrastructureBaseUrl(new URL(eSciDocInfrastructureBaseUrl));
-            this.setUserHandle(userHandle);
+            seteSciDocInfrastructureBaseUrl(new URL(eSciDocInfrastructureBaseUrl));
+            setUserHandle(userHandle);
         }
         catch (ConfigurationException e) {
             LOG.error("Can not set infrastructure URL or user handle creating new Ingester.", e);
@@ -180,66 +180,41 @@ public class DirectoryIngester extends AbstractIngester {
 
         try {
             List<Node> items = new Vector<Node>();
-            Count c = new Count(this.ingestProgressListener);
+            Count c = new Count(ingestProgressListener);
             root = new Node(items, c);
-            root.setFile(this.directory);
+            root.setFile(directory);
             root.dive();
 
             Iterator<Node> nodeIt = items.iterator();
 
-            boolean isError = false;
-
-            // Node errorNode = null;
             while (nodeIt.hasNext() && !isCanceled) {
                 Node n;
-                // if(isError==false)
-                // {
                 n = nodeIt.next();
-                // }else
-                // {
-                // n = errorNode;
-                // }
                 LOG.debug("Ingesting " + n.getFile().getPath());
                 try {
                     ingest(n);
-                    // isError=false;
-
                 }
                 catch (EscidocException e) {
                     LOG.debug("Ingest failed, filename:" + n.getFile());
                     LOG.debug("Ingest failed, itemNumber:" + c.getValue(), e);
-                    // errorNode = n;
-                    // isError=true;
                 }
                 catch (InternalClientException e) {
                     String msg = "Error in eSciDoc Client.";
                     LOG.error(msg, e);
-                    // errorNode = n;
-                    // isError = true;
-
                 }
                 catch (TransportException e) {
                     // FIXME reason for Transport Exception?
                     String msg = "Communication error.";
                     LOG.error(msg, e);
-                    // errorNode = n;
-                    // isError = true;
-
                 }
                 catch (AlreadyIngestedException e) {
                     String msg = "An already ingested entity was tried to be ingested.";
                     LOG.error(msg, e);
-                    // errorNode = n;
-                    // isError = true;
-
                 }
                 catch (FileNotFoundException e) {
                     String msg = "File to be ingested can not be found.";
                     LOG.error(msg, e);
-                    // errorNode = n;
-                    // isError = true;
                 }
-
             }
         }
         catch (FileNotFoundException e) {
@@ -306,8 +281,8 @@ public class DirectoryIngester extends AbstractIngester {
                 throw e;
             }
         }
-        if (this.ingestProgressListener != null) {
-            this.ingestProgressListener.incrementIngested();
+        if (ingestProgressListener != null) {
+            ingestProgressListener.incrementIngested();
         }
 
         // if all children of parent are already ingested, ingest parent
@@ -350,9 +325,9 @@ public class DirectoryIngester extends AbstractIngester {
         Container container = new Container();
 
         // properties
-        container.getProperties().setContentModel(new ContentModelRef(this.getContainerContentModel()));
-        container.getProperties().setContext(new ContextRef(this.getContext()));
-        if (this.getInitialLifecycleStatus().equals("released")) {
+        container.getProperties().setContentModel(new ContentModelRef(getContainerContentModel()));
+        container.getProperties().setContext(new ContextRef(getContext()));
+        if (getInitialLifecycleStatus().equals(PublicStatus.RELEASED)) {
             container.getProperties().setPid("no:pid/test");
         }
         container.getProperties().setPublicStatus(PublicStatus.OPENED);// this.getInitialLifecycleStatus());
@@ -387,15 +362,15 @@ public class DirectoryIngester extends AbstractIngester {
         String containerXml = cm.marshalDocument(container);
         String resultXml;
         try {
-            resultXml = this.getIngestHandlerClient().ingest(containerXml);
+            resultXml = getIngestHandlerClient().ingest(containerXml);
         }
         catch (EscidocException e) {
-            System.out.println(containerXml);
+            LOG.error(containerXml);
             throw e;
         }
 
         // store result
-        System.out.println("result[" + resultXml + "]");
+        LOG.info("result[" + resultXml + "]");
         Marshaller<Result> rm = mf.getMarshaller(Result.class);
         Result result = rm.unmarshalDocument(resultXml);
         String containerId = result.getFirst().getTextContent();
@@ -427,12 +402,12 @@ public class DirectoryIngester extends AbstractIngester {
         Item item = new Item();
 
         // properties
-        item.getProperties().setContentModel(new ContentModelRef(this.getItemContentModel()));
-        item.getProperties().setContext(new ContextRef(this.getContext()));
-        if (this.getInitialLifecycleStatus().equals("released")) {
+        item.getProperties().setContentModel(new ContentModelRef(getItemContentModel()));
+        item.getProperties().setContext(new ContextRef(getContext()));
+        if (getInitialLifecycleStatus().equals(PublicStatus.RELEASED)) {
             item.getProperties().setPid("no:pid/test");
         }
-        item.getProperties().setPublicStatus(this.getInitialLifecycleStatus());
+        item.getProperties().setPublicStatus(getInitialLifecycleStatus());
         item.getProperties().setPublicStatusComment("Item ingested via Ingest Client API");
 
         item.setMetadataRecords(new MetadataRecords());
@@ -441,10 +416,10 @@ public class DirectoryIngester extends AbstractIngester {
         // content
         Component component = new Component();
         component.setProperties(new ComponentProperties());
-        component.getProperties().setContentCategory(this.getContentCategory());
-        component.getProperties().setValidStatus(this.getValidStatus());
-        component.getProperties().setVisibility(this.getVisibility());
-        component.getProperties().setMimeType(this.getMimeType());
+        component.getProperties().setContentCategory(getContentCategory());
+        component.getProperties().setValidStatus(getValidStatus());
+        component.getProperties().setVisibility(getVisibility());
+        component.getProperties().setMimeType(getMimeType());
 
         MetadataRecord contentMd = createContentMetadata(n.getFile());
         if (contentMd != null && contentMd.getContent() != null) {
@@ -455,7 +430,7 @@ public class DirectoryIngester extends AbstractIngester {
         ComponentContent content = new ComponentContent();
         content.setStorage(StorageType.INTERNAL_MANAGED);
 
-        URL stagingFile = this.getStagingHandlerClient().upload(n.getFile());
+        URL stagingFile = getStagingHandlerClient().upload(n.getFile());
 
         content.setXLinkHref(stagingFile.toString());
         component.setContent(content);
@@ -468,7 +443,7 @@ public class DirectoryIngester extends AbstractIngester {
         String itemXml = im.marshalDocument(item);
         String result;
         try {
-            result = this.getIngestHandlerClient().ingest(itemXml);
+            result = getIngestHandlerClient().ingest(itemXml);
         }
         catch (EscidocException e) {
             System.out.println(itemXml);
@@ -485,7 +460,6 @@ public class DirectoryIngester extends AbstractIngester {
         n.getResource().setTitle(n.getFile().getName());
         n.getResource().setHref("/ir/item/" + itemId);
         n.setIsIngested(true);
-
     }
 
     /**
@@ -538,7 +512,9 @@ public class DirectoryIngester extends AbstractIngester {
         MetadataRecord metadata = new MetadataRecord("escidoc");
 
         try {
-            Collection<WebService> webservices = IngestConfiguration.getContentWebservices();
+            Collection<WebService> webservices = new ArrayList<WebService>();
+
+            // .getContentWebservices();
             Iterator<WebService> it = webservices.iterator();
             while (it.hasNext() && !isCanceled) {
                 WebService ws = it.next();
@@ -549,7 +525,6 @@ public class DirectoryIngester extends AbstractIngester {
                     Document doc = (Document) result;
                     metadata.setContent(doc.getDocumentElement());
                 }
-
             }
         }
         catch (MalformedURLException e) {
@@ -557,10 +532,6 @@ public class DirectoryIngester extends AbstractIngester {
             throw new RuntimeException(e);
         }
         catch (ExecutionException e) {
-            // FIXME
-            throw new RuntimeException(e);
-        }
-        catch (ConfigurationException e) {
             // FIXME
             throw new RuntimeException(e);
         }
@@ -617,7 +588,7 @@ public class DirectoryIngester extends AbstractIngester {
     public void checkConfiguration() throws ConfigurationException {
         super.checkConfiguration();
 
-        if (this.directory == null) {
+        if (directory == null) {
             throw new ConfigurationException("Directory must be set.");
         }
     }

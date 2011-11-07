@@ -50,7 +50,6 @@ import de.escidoc.core.client.ContextHandlerClient;
 import de.escidoc.core.client.IngestHandlerClient;
 import de.escidoc.core.client.ItemHandlerClient;
 import de.escidoc.core.client.StagingHandlerClient;
-import de.escidoc.core.client.TransportProtocol;
 import de.escidoc.core.client.exceptions.EscidocException;
 import de.escidoc.core.client.exceptions.InternalClientException;
 import de.escidoc.core.client.exceptions.TransportException;
@@ -124,12 +123,10 @@ public abstract class AbstractIngester implements Ingester {
         TransportException {
         List<ResourceEntry> result = new Vector<ResourceEntry>();
 
-        ContentModelHandlerClientInterface cmc = new ContentModelHandlerClient(this.eSciDocInfrastructureBaseUrl);
-        cmc.setHandle(this.userHandle);
-        cmc.setTransport(TransportProtocol.REST);
+        ContentModelHandlerClientInterface cmc = new ContentModelHandlerClient(eSciDocInfrastructureBaseUrl);
+        cmc.setHandle(userHandle);
 
         SearchRetrieveRequestType request = new SearchRetrieveRequestType();
-        // request.setQuery("type = context");
         Collection<ContentModel> contextList = cmc.retrieveContentModelsAsList(request);
         Iterator<ContentModel> contextIt = contextList.iterator();
         while (contextIt.hasNext()) {
@@ -142,23 +139,6 @@ public abstract class AbstractIngester implements Ingester {
 
             result.add(re);
         }
-
-        // ContentModel ccm = cmc.retrieve(this.containerContentModel);
-        // ResourceEntry ccmre = new ResourceEntry();
-        // ccmre.setTitle(ccm.getProperties().getName());
-        // ccmre.setIdentifier(ccm.getObjid());
-        // ccmre.setHref(ccm.getXLinkHref());
-        // result.add(ccmre);
-        //
-        // if (this.itemContentModel != null) {
-        // ContentModel icm = cmc.retrieve(this.itemContentModel);
-        // ResourceEntry icmre = new ResourceEntry();
-        // icmre.setTitle(icm.getProperties().getName());
-        // icmre.setIdentifier(icm.getObjid());
-        // icmre.setHref(icm.getXLinkHref());
-        // result.add(icmre);
-        // }
-
         return result;
     }
 
@@ -171,9 +151,8 @@ public abstract class AbstractIngester implements Ingester {
     public final List<ResourceEntry> getContexts() throws InternalClientException, EscidocException, TransportException {
         List<ResourceEntry> result = new Vector<ResourceEntry>();
 
-        ContextHandlerClientInterface cc = new ContextHandlerClient(this.eSciDocInfrastructureBaseUrl);
-        cc.setHandle(this.userHandle);
-        cc.setTransport(TransportProtocol.REST);
+        ContextHandlerClientInterface cc = new ContextHandlerClient(eSciDocInfrastructureBaseUrl);
+        cc.setHandle(userHandle);
 
         SearchRetrieveRequestType request = new SearchRetrieveRequestType();
         request.setQuery("type = context");
@@ -210,8 +189,8 @@ public abstract class AbstractIngester implements Ingester {
         result.add("application/pdf");
         result.add("application/octet-stream");
 
-        if (this.getMimeType() != null && !result.contains(this.getMimeType())) {
-            result.add(0, this.getMimeType());
+        if (getMimeType() != null && !result.contains(getMimeType())) {
+            result.add(0, getMimeType());
         }
 
         return result;
@@ -229,9 +208,9 @@ public abstract class AbstractIngester implements Ingester {
         result.add(PublicStatus.SUBMITTED);
         result.add(PublicStatus.RELEASED);
 
-        if (this.getInitialLifecycleStatus() != null && !result.contains(this.getInitialLifecycleStatus())) {
-            result.remove(this.getInitialLifecycleStatus());
-            result.add(0, this.getInitialLifecycleStatus());
+        if (getInitialLifecycleStatus() != null && !result.contains(getInitialLifecycleStatus())) {
+            result.remove(getInitialLifecycleStatus());
+            result.add(0, getInitialLifecycleStatus());
         }
 
         return result;
@@ -244,20 +223,17 @@ public abstract class AbstractIngester implements Ingester {
      */
     @Override
     public final void ingest() throws ConfigurationException, IngestException {
-
         try {
-
-            this.setIngestStarted(true);
-            this.checkConfiguration();
+            setIngestStarted(true);
+            checkConfiguration();
             ingestHook();
-
         }
         catch (ConfigurationException e) {
-            this.setIngestStarted(false);
+            setIngestStarted(false);
             throw e;
         }
         catch (IngestException e) {
-            this.setIngestStarted(false);
+            setIngestStarted(false);
             throw e;
         }
     }
@@ -279,43 +255,43 @@ public abstract class AbstractIngester implements Ingester {
      */
     public void checkConfiguration() throws ConfigurationException {
 
-        if (this.eSciDocInfrastructureBaseUrl == null) {
+        if (eSciDocInfrastructureBaseUrl == null) {
             throw new ConfigurationException("eSciDocInfrastructureBaseUrl must be set.");
         }
 
-        if (this.userHandle == null || this.userHandle.trim().length() == 0) {
+        if (userHandle == null || userHandle.trim().length() == 0) {
             throw new ConfigurationException("userHandle must be set.");
         }
 
-        if (this.context == null || this.context.trim().length() == 0) {
+        if (context == null || context.trim().length() == 0) {
             throw new ConfigurationException("Context must be set.");
         }
 
-        if (this.containerContentModel == null || this.containerContentModel.trim().length() == 0) {
+        if (containerContentModel == null || containerContentModel.trim().length() == 0) {
             throw new ConfigurationException("containerContentModel must be set.");
         }
 
-        if (this.itemContentModel == null || this.itemContentModel.trim().length() == 0) {
+        if (itemContentModel == null || itemContentModel.trim().length() == 0) {
             throw new ConfigurationException("itemContentModel must be set.");
         }
 
-        if (this.contentCategory == null || this.contentCategory.trim().length() == 0) {
+        if (contentCategory == null || contentCategory.trim().length() == 0) {
             throw new ConfigurationException("contentCategory must be set.");
         }
 
-        if (this.initialLifecycleStatus == null) {
+        if (initialLifecycleStatus == null) {
             throw new ConfigurationException("initialLifecycleStatus must be set.");
         }
 
-        if (this.mimeType == null || this.mimeType.trim().length() == 0) {
+        if (mimeType == null || mimeType.trim().length() == 0) {
             throw new ConfigurationException("Mime-Type must be set.");
         }
 
-        if (this.visibility == null || this.visibility.trim().length() == 0) {
+        if (visibility == null || visibility.trim().length() == 0) {
             throw new ConfigurationException("Content visibility must be set.");
         }
 
-        if (this.validStatus == null || this.validStatus.trim().length() == 0) {
+        if (validStatus == null || validStatus.trim().length() == 0) {
             throw new ConfigurationException("Content valid status must be set.");
         }
 
@@ -355,12 +331,11 @@ public abstract class AbstractIngester implements Ingester {
      */
     protected final IngestHandlerClientInterface getIngestHandlerClient() throws InternalClientException {
         // Ingest Handler
-        if (this.ingestHandler == null) {
-            this.ingestHandler = new IngestHandlerClient(this.geteSciDocInfrastructureBaseUrl());
-            this.ingestHandler.setHandle(this.getUserHandle());
-            this.ingestHandler.setTransport(TransportProtocol.REST);
+        if (ingestHandler == null) {
+            ingestHandler = new IngestHandlerClient(geteSciDocInfrastructureBaseUrl());
+            ingestHandler.setHandle(getUserHandle());
         }
-        return this.ingestHandler;
+        return ingestHandler;
     }
 
     /**
@@ -372,12 +347,11 @@ public abstract class AbstractIngester implements Ingester {
      */
     protected final ContainerHandlerClientInterface getContainerHandlerClient() throws InternalClientException {
         // Container Handler
-        if (this.containerHandler == null) {
-            this.containerHandler = new ContainerHandlerClient(this.geteSciDocInfrastructureBaseUrl());
-            this.containerHandler.setHandle(this.getUserHandle());
-            this.containerHandler.setTransport(TransportProtocol.REST);
+        if (containerHandler == null) {
+            containerHandler = new ContainerHandlerClient(geteSciDocInfrastructureBaseUrl());
+            containerHandler.setHandle(getUserHandle());
         }
-        return this.containerHandler;
+        return containerHandler;
     }
 
     /**
@@ -389,12 +363,11 @@ public abstract class AbstractIngester implements Ingester {
      */
     protected final ItemHandlerClientInterface getItemHandlerClient() throws InternalClientException {
         // Item Handler
-        if (this.itemHandler == null) {
-            this.itemHandler = new ItemHandlerClient(this.geteSciDocInfrastructureBaseUrl());
-            this.itemHandler.setHandle(this.getUserHandle());
-            this.itemHandler.setTransport(TransportProtocol.REST);
+        if (itemHandler == null) {
+            itemHandler = new ItemHandlerClient(geteSciDocInfrastructureBaseUrl());
+            itemHandler.setHandle(getUserHandle());
         }
-        return this.itemHandler;
+        return itemHandler;
     }
 
     /**
@@ -406,12 +379,11 @@ public abstract class AbstractIngester implements Ingester {
      */
     protected final ContentModelHandlerClientInterface getContentModelHandlerClient() throws InternalClientException {
         // Item Handler
-        if (this.contentModelHandler == null) {
-            this.contentModelHandler = new ContentModelHandlerClient(this.geteSciDocInfrastructureBaseUrl());
-            this.contentModelHandler.setHandle(this.getUserHandle());
-            this.contentModelHandler.setTransport(TransportProtocol.REST);
+        if (contentModelHandler == null) {
+            contentModelHandler = new ContentModelHandlerClient(geteSciDocInfrastructureBaseUrl());
+            contentModelHandler.setHandle(getUserHandle());
         }
-        return this.contentModelHandler;
+        return contentModelHandler;
     }
 
     /**
@@ -423,12 +395,11 @@ public abstract class AbstractIngester implements Ingester {
      */
     protected final StagingHandlerClientInterface getStagingHandlerClient() throws InternalClientException {
         // Staging Handler
-        if (this.stagingHandler == null) {
-            this.stagingHandler = new StagingHandlerClient(this.geteSciDocInfrastructureBaseUrl());
-            this.stagingHandler.setHandle(this.getUserHandle());
-            this.stagingHandler.setTransport(TransportProtocol.REST);
+        if (stagingHandler == null) {
+            stagingHandler = new StagingHandlerClient(geteSciDocInfrastructureBaseUrl());
+            stagingHandler.setHandle(getUserHandle());
         }
-        return this.stagingHandler;
+        return stagingHandler;
     }
 
     // getter/setter
@@ -461,7 +432,7 @@ public abstract class AbstractIngester implements Ingester {
     }
 
     protected final void setIngestStarted(boolean ingestStarted) throws ConfigurationException {
-        if (ingestStarted && this.isIngestStarted()) {
+        if (ingestStarted && isIngestStarted()) {
             throw new ConfigurationException("Ingest was already started.");
         }
         this.ingestStarted = ingestStarted;
@@ -499,10 +470,10 @@ public abstract class AbstractIngester implements Ingester {
 
     @Override
     public final String getContentCategory() {
-        if (this.contentCategory == null) {
-            this.contentCategory = "ORIGINAL";
+        if (contentCategory == null) {
+            contentCategory = "ORIGINAL";
         }
-        return this.contentCategory;
+        return contentCategory;
     }
 
     @Override

@@ -35,7 +35,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import de.escidoc.core.resources.common.properties.PublicStatus;
 import org.escidoc.core.client.ingest.DefaultIngester;
 import org.escidoc.core.client.ingest.Ingester;
 import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
@@ -51,6 +50,7 @@ import de.escidoc.core.common.jibx.Marshaller;
 import de.escidoc.core.common.jibx.MarshallerFactory;
 import de.escidoc.core.resources.common.MetadataRecord;
 import de.escidoc.core.resources.common.MetadataRecords;
+import de.escidoc.core.resources.common.properties.PublicStatus;
 import de.escidoc.core.resources.common.reference.ContentModelRef;
 import de.escidoc.core.resources.common.reference.ContextRef;
 import de.escidoc.core.resources.om.item.Item;
@@ -109,7 +109,7 @@ public class ExampleDefaultIngester {
         // properties
         item.getProperties().setContentModel(new ContentModelRef(ingester.getItemContentModel()));
         item.getProperties().setContext(new ContextRef(ingester.getContext()));
-        if (ingester.getInitialLifecycleStatus().equals("released")) {
+        if (ingester.getInitialLifecycleStatus().equals(PublicStatus.RELEASED)) {
             item.getProperties().setPid("no:pid/test");
         }
         // TO abfrage vom ingester

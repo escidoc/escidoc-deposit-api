@@ -2,28 +2,38 @@
 ### 	This is done in the abstract implementation of the interface
 ####	Ingester. DirectoryIngester calls loadConfiguration in order
 ###	to get default values.
+
 # default Context
 escidoc.client.ingest.context=escidoc:persistent3
+
 # default Content Model for Items
 # 	Since there is no listing for Content Models this Content
 # 	Model appears in the list of available Content Models. See
 # 	Ingester.getContentModels().
 escidoc.client.ingest.content-model.container=escidoc:persistent4
+
 # default Content Model for Containers
 # 	Since there is no listing for Content Models this Content
 # 	Model appears in the list of available Content Models. See
 # 	Ingester.getContentModels().
 escidoc.client.ingest.content-model.item=escidoc:persistent4
+
 # default for initial status
 escidoc.client.ingest.status=released
+
 # default content category assigend to content of an Item
 escidoc.client.ingest.content-category=ORIGINAL
+
 # default mime-type assigned to content of an Item
 escidoc.client.ingest.mime-type=application/octet-stream
+
 # default visibility assigned to content of an Item
 escidoc.client.ingest.visibility=public
+
 # default valid status assigned to content of an Item
 escidoc.client.ingest.valid-status=valid
+
 ### END loaded by Ingester.loadConfiguration()
+
 # Base URLs of eSciDoc Infrastructures to use (comma separated)
 escidoc.client.ingest.infrastructure-urls=http://localhost:8080,http://escidev4:8080
