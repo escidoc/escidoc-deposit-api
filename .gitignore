@@ -3,3 +3,4 @@
 escidoc-ingest-client.properties.save
 .settings
 /escidoc-ingest-client.properties
+target/
