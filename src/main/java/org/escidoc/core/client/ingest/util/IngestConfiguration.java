@@ -48,27 +48,32 @@ import org.slf4j.LoggerFactory;
 
 public class IngestConfiguration {
 
-    private static final String PROPERTIES_FILENAME = "escidoc-ingest-client.custom.properties";
+    private static final String PROPERTIES_FILENAME =
+        "escidoc-ingest-client.custom.properties";
 
-    private static final String PROPERTIES_DEFAULT_FILENAME = "escidoc-ingest-client.properties";
+    private static final String PROPERTIES_DEFAULT_FILENAME =
+        "escidoc-ingest-client.properties";
 
     private static final String CATALINA_HOME = "catalina.home";
 
-    private static final String PROPERTIES_BASEDIR = System.getProperty(CATALINA_HOME) + "/";
+    private static final String PROPERTIES_BASEDIR = System
+        .getProperty(CATALINA_HOME) + "/";
 
     private static final String PROPERTIES_DIR = PROPERTIES_BASEDIR + "conf/";
 
-    private static final Logger LOG = LoggerFactory.getLogger(IngestConfiguration.class.getName());
+    private static final Logger LOG = LoggerFactory
+        .getLogger(IngestConfiguration.class.getName());
 
-    public static final String INGEST_PROPERTY_PREFIX = "escidoc.client.ingest.";
+    public static final String INGEST_PROPERTY_PREFIX =
+        "escidoc.client.ingest.";
 
     private static IngestConfiguration instance = null;
 
     private final Properties properties;
 
     /**
-     * Private Constructor, in order to prevent instantiation of this utility class. read the Properties and fill it in
-     * properties attribute.
+     * Private Constructor, in order to prevent instantiation of this utility
+     * class. read the Properties and fill it in properties attribute.
      * 
      * @throws ConfigurationException
      *             e
@@ -87,7 +92,8 @@ public class IngestConfiguration {
      *             Thrown if properties loading fails.
      * 
      */
-    public static synchronized IngestConfiguration getInstance() throws IOException {
+    public static synchronized IngestConfiguration getInstance()
+        throws IOException {
         if (instance == null) {
             instance = new IngestConfiguration();
         }
@@ -95,7 +101,8 @@ public class IngestConfiguration {
     }
 
     /**
-     * Returns the property with the given name or null if property was not found.
+     * Returns the property with the given name or null if property was not
+     * found.
      * 
      * @param name
      *            The name of the Property.
@@ -106,7 +113,8 @@ public class IngestConfiguration {
     }
 
     /**
-     * Returns the property with the given name or the second parameter as default value if property was not found.
+     * Returns the property with the given name or the second parameter as
+     * default value if property was not found.
      * 
      * @param name
      *            The name of the Property.
@@ -124,14 +132,17 @@ public class IngestConfiguration {
     }
 
     /**
-     * Loads the Properties from the possible files. First loads properties from the file escidoc-core.properties.
-     * Afterwards tries to load specific properties from the file escidoc-core.custom.properties and merges them with
-     * the default properties. If any key is included in default and specific properties, the value of the specific
-     * property will overwrite the default property.
+     * Loads the Properties from the possible files. First loads properties from
+     * the file escidoc-core.properties. Afterwards tries to load specific
+     * properties from the file escidoc-core.custom.properties and merges them
+     * with the default properties. If any key is included in default and
+     * specific properties, the value of the specific property will overwrite
+     * the default property.
      * 
      * @return The properties
      * @throws ConfigurationException
-     *             If the loading of the default properties (file escidoc-ingest-client.properties) fails.
+     *             If the loading of the default properties (file
+     *             escidoc-ingest-client.properties) fails.
      * 
      */
     private synchronized Properties loadProperties() throws IOException {
@@ -142,15 +153,20 @@ public class IngestConfiguration {
             }
             catch (IOException e) {
                 try {
-                    result = getProperties(PROPERTIES_BASEDIR + PROPERTIES_DEFAULT_FILENAME);
+                    result =
+                        getProperties(PROPERTIES_BASEDIR
+                            + PROPERTIES_DEFAULT_FILENAME);
                 }
                 catch (IOException e1) {
-                    result = getProperties(PROPERTIES_DIR + PROPERTIES_DEFAULT_FILENAME);
+                    result =
+                        getProperties(PROPERTIES_DIR
+                            + PROPERTIES_DEFAULT_FILENAME);
                 }
             }
         }
         catch (IOException e) {
-            throw new IOException("Configuration file " + PROPERTIES_DEFAULT_FILENAME + " not found.");
+            throw new IOException("Configuration file "
+                + PROPERTIES_DEFAULT_FILENAME + " not found.");
         }
 
         if (LOG.isDebugEnabled()) {
@@ -162,11 +178,13 @@ public class IngestConfiguration {
         }
         catch (IOException e) {
             try {
-                specific = getProperties(PROPERTIES_BASEDIR + PROPERTIES_FILENAME);
+                specific =
+                    getProperties(PROPERTIES_BASEDIR + PROPERTIES_FILENAME);
             }
             catch (IOException e1) {
                 try {
-                    specific = getProperties(PROPERTIES_DIR + PROPERTIES_FILENAME);
+                    specific =
+                        getProperties(PROPERTIES_DIR + PROPERTIES_FILENAME);
                 }
                 catch (IOException e2) {
                     specific = new Properties();
@@ -190,7 +208,8 @@ public class IngestConfiguration {
      * @throws IOException
      *             If access to the specified file fails.
      */
-    private synchronized Properties getProperties(final String filename) throws IOException {
+    private synchronized Properties getProperties(final String filename)
+        throws IOException {
 
         Properties result = new Properties();
         InputStream propertiesStream = getInputStream(filename);
@@ -207,11 +226,15 @@ public class IngestConfiguration {
      * @throws FileNotFoundException
      *             If access to the specified file fails.
      */
-    private synchronized InputStream getInputStream(final String filename) throws FileNotFoundException {
+    private synchronized InputStream getInputStream(final String filename)
+        throws FileNotFoundException {
 
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(filename);
+        InputStream inputStream =
+            getClass().getClassLoader().getResourceAsStream(filename);
         if (inputStream == null) {
-            LOG.debug("Could not load config as resource. Trying to load file: " + filename + ".");
+            LOG
+                .debug("Could not load config as resource. Trying to load file: "
+                    + filename + ".");
             inputStream = new FileInputStream(new File(filename));
         }
         return inputStream;
@@ -221,7 +244,9 @@ public class IngestConfiguration {
         List<String> result = new Vector<String>();
 
         try {
-            String urlsString = IngestConfiguration.getInstance().get(INGEST_PROPERTY_PREFIX + "infrastructure-urls");
+            String urlsString =
+                IngestConfiguration.getInstance().get(
+                    INGEST_PROPERTY_PREFIX + "infrastructure-urls");
             if (urlsString != null) {
                 String[] urls = urlsString.split(",");
                 for (String url : urls) {
@@ -239,46 +264,64 @@ public class IngestConfiguration {
         return result;
     }
 
-    public static Collection<WebService> getContentWebservices() throws ConfigurationException {
+    public static Collection<WebService> getContentWebservices()
+        throws ConfigurationException {
 
         Collection<WebService> result = new Vector<WebService>();
 
         try {
             String webserviceNames =
-                IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "ws.names.content");
+                IngestConfiguration.getInstance().get(
+                    IngestConfiguration.INGEST_PROPERTY_PREFIX
+                        + "ws.names.content");
             if (webserviceNames != null) {
-                List<String> webserviceNameList = Arrays.asList(webserviceNames.split(","));
+                List<String> webserviceNameList =
+                    Arrays.asList(webserviceNames.split(","));
                 Iterator<String> it = webserviceNameList.iterator();
                 while (it.hasNext()) {
                     String webserviceName = it.next().trim();
                     if (webserviceName.length() != 0) {
                         String webservicePropertyPrefix =
-                            IngestConfiguration.INGEST_PROPERTY_PREFIX + "ws." + webserviceName + ".";
+                            IngestConfiguration.INGEST_PROPERTY_PREFIX + "ws."
+                                + webserviceName + ".";
 
                         WebService ws = null;
                         // type, endpoint, parameters, mime-type
-                        String type = IngestConfiguration.getInstance().get(webservicePropertyPrefix + "type");
-                        String endpoint = IngestConfiguration.getInstance().get(webservicePropertyPrefix + "endpoint");
-                        ws = WebServiceFactory.getInstance().getWebService(type, endpoint);
+                        String type =
+                            IngestConfiguration.getInstance().get(
+                                webservicePropertyPrefix + "type");
+                        String endpoint =
+                            IngestConfiguration.getInstance().get(
+                                webservicePropertyPrefix + "endpoint");
+                        ws =
+                            WebServiceFactory.getInstance().getWebService(type,
+                                endpoint);
 
                         // if parameters, set in webservice
                         String parameterString =
-                            IngestConfiguration.getInstance().get(webservicePropertyPrefix + "parameters");
+                            IngestConfiguration.getInstance().get(
+                                webservicePropertyPrefix + "parameters");
                         if (parameterString != null) {
-                            List<String> parameterList = Arrays.asList(parameterString);
-                            Iterator<String> parameterIt = parameterList.iterator();
+                            List<String> parameterList =
+                                Arrays.asList(parameterString);
+                            Iterator<String> parameterIt =
+                                parameterList.iterator();
                             while (parameterIt.hasNext()) {
-                                String[] parameter = parameterIt.next().split("=");
+                                String[] parameter =
+                                    parameterIt.next().split("=");
                                 String key = parameter[0].trim();
                                 String value = parameter[1].trim();
-                                if (key != null && key.length() > 0 && value != null && value.length() > 0) {
+                                if (key != null && key.length() > 0
+                                    && value != null && value.length() > 0) {
                                     ws.addParam(key, value);
                                 }
                             }
                         }
 
                         // if 'mime-type' is set, set it in webservice
-                        String mimeType = IngestConfiguration.getInstance().get(webservicePropertyPrefix + "mime-type");
+                        String mimeType =
+                            IngestConfiguration.getInstance().get(
+                                webservicePropertyPrefix + "mime-type");
                         if (mimeType != null) {
                             ws.setMimeType(mimeType);
                         }
@@ -290,7 +333,8 @@ public class IngestConfiguration {
 
         }
         catch (IOException e) {
-            throw new ConfigurationException("Error accessing webservice configuration for content");
+            throw new ConfigurationException(
+                "Error accessing webservice configuration for content.", e);
         }
 
         return result;
