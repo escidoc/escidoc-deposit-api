@@ -87,7 +87,6 @@ public class ByNameIngester extends AbstractIngester {
         try {
             seteSciDocInfrastructureBaseUrl(eSciDocInfrastructureBaseUrl);
             setUserHandle(userHandle);
-
         }
         catch (ConfigurationException e) {
             LOG.error("Can not set infrastructure URL or user handle creating new Ingester.", e);

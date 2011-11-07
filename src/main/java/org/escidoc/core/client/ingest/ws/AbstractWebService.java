@@ -31,8 +31,8 @@ package org.escidoc.core.client.ingest.ws;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.escidoc.core.client.ingest.ws.exceptions.ExecutionException;
 
@@ -63,7 +63,7 @@ public abstract class AbstractWebService implements WebService {
      */
     @Override
     public void addParam(String key, String value) {
-        this.params.put(key, value);
+        params.put(key, value);
     }
 
     /*
@@ -73,10 +73,8 @@ public abstract class AbstractWebService implements WebService {
      */
     @Override
     public void addParams(Map<Object, Object> params) {
-        Iterator<Object> it = params.keySet().iterator();
-        while (it.hasNext()) {
-            Object o = it.next();
-            this.addParam(o.toString(), params.get(o).toString());
+        for (Entry<Object, Object> entry : params.entrySet()) {
+            addParam(entry.toString(), entry.getValue().toString());
         }
     }
 
@@ -88,9 +86,9 @@ public abstract class AbstractWebService implements WebService {
     @Override
     public void addParams(File file) throws MalformedURLException {
         this.file = file;
-        this.params.put("localpath", file.getPath());
-        this.params.put("name", file.getName());
-        this.params.put("url", file.toURI().toURL().toString());
+        params.put("localpath", file.getPath());
+        params.put("name", file.getName());
+        params.put("url", file.toURI().toURL().toString());
     }
 
     /*

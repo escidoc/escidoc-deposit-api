@@ -70,8 +70,6 @@ public class ContentModelsByName {
         String handle = args[1];
 
         String[] nameArray = Arrays.copyOfRange(args, 2, args.length);
-        // { "Instrument Content Model", "Study Content Model",
-        // "InvestigationSeries Content Model" };
         List<String> names = Arrays.asList(nameArray);
 
         Ingester ingester = new ByNameIngester(infrastructureUrl, handle, names, ResourceType.CONTENT_MODEL);
@@ -86,9 +84,16 @@ public class ContentModelsByName {
             ResourceEntry re = it.next();
             contentModelProperties.setProperty(re.getTitle(), re.getIdentifier());
         }
-        contentModelProperties.store(new FileOutputStream("ContentModel.properties"),
-            "Content Models for use with BW-eLabs");
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream("ContentModel.properties");
+            contentModelProperties.store(fos, "Content Models for use with BW-eLabs");
+        }
 
+        finally {
+            if (fos != null) {
+                fos.close();
+            }
+        }
     }
-
 }
