@@ -2,9 +2,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.escidoc.core.client.ingest</groupId>
-	<artifactId>eSciDocIngestClientAPI</artifactId>
+	<artifactId>eSciDocDepositAPI</artifactId>
 	<version>0.9-SNAPSHOT</version>
-	<name>eSciDoc Core - Ingest Client API</name>
+	<name>eSciDoc Core - Deposit API</name>
 
 	<properties>
 		<compiler.level>1.6</compiler.level>
