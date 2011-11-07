@@ -63,18 +63,15 @@ import de.escidoc.core.resources.om.item.Item;
  */
 public class ExampleDefaultIngester {
 
-    public static void main(String[] args) throws EscidocException,
-        InternalClientException, TransportException, ConfigurationException,
-        IngestException, MalformedURLException {
+    public static void main(String[] args) throws EscidocException, InternalClientException, TransportException,
+        ConfigurationException, IngestException, MalformedURLException {
 
         // configure ingester (values are not used in default implementation but
         // creating resource xml below)
         Ingester ingester = new DefaultIngester(new URL("http://localhost:8080"), "Shibboleth-Handle-1");
 
-        ingester.setContainerContentModel(ingester
-            .getContentModels().get(0).getIdentifier());
-        ingester.setItemContentModel(ingester
-            .getContentModels().get(0).getIdentifier());
+        ingester.setContainerContentModel(ingester.getContentModels().get(0).getIdentifier());
+        ingester.setItemContentModel(ingester.getContentModels().get(0).getIdentifier());
         ingester.setContext(ingester.getContexts().get(0).getIdentifier());
         ingester.setContentCategory("ORIGINAL");
         ingester.setInitialLifecycleStatus(PublicStatus.RELEASED);// ingester.getLifecycleStatus().get(0));
@@ -83,15 +80,11 @@ public class ExampleDefaultIngester {
         ingester.setValidStatus("valid");
 
         // print out configuration
-        System.out.println("ContainerContentModel["
-            + ingester.getContainerContentModel() + "]");
-        System.out.println("ItemContentModel[" + ingester.getItemContentModel()
-            + "]");
+        System.out.println("ContainerContentModel[" + ingester.getContainerContentModel() + "]");
+        System.out.println("ItemContentModel[" + ingester.getItemContentModel() + "]");
         System.out.println("Context[" + ingester.getContext() + "]");
-        System.out.println("ContentCategory[" + ingester.getContentCategory()
-            + "]");
-        System.out.println("InitialLifecycleStatus["
-            + ingester.getInitialLifecycleStatus() + "]");
+        System.out.println("ContentCategory[" + ingester.getContentCategory() + "]");
+        System.out.println("InitialLifecycleStatus[" + ingester.getInitialLifecycleStatus() + "]");
         System.out.println("MimeType[" + ingester.getMimeType() + "]");
         System.out.println("Visibility[" + ingester.getVisibility() + "]");
         System.out.println("ValidStatus[" + ingester.getValidStatus() + "]");
@@ -109,23 +102,20 @@ public class ExampleDefaultIngester {
 
     }
 
-    public static String getResourceXml(Ingester ingester)
-        throws InternalClientException {
+    public static String getResourceXml(Ingester ingester) throws InternalClientException {
 
         Item item = new Item();
 
         // properties
-        item.getProperties().setContentModel(
-            new ContentModelRef(ingester.getItemContentModel()));
+        item.getProperties().setContentModel(new ContentModelRef(ingester.getItemContentModel()));
         item.getProperties().setContext(new ContextRef(ingester.getContext()));
         if (ingester.getInitialLifecycleStatus().equals("released")) {
             item.getProperties().setPid("no:pid/test");
         }
-        //TO abfrage vom ingester
-        //            ingester.getInitialLifecycleStatus());
+        // TO abfrage vom ingester
+        // ingester.getInitialLifecycleStatus());
         item.getProperties().setPublicStatus(PublicStatus.OPENED);
-        item.getProperties().setPublicStatusComment(
-            "Item ingested via Ingest Client API");
+        item.getProperties().setPublicStatusComment("Item ingested via Ingest Client API");
 
         // dc metadata
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -139,13 +129,9 @@ public class ExampleDefaultIngester {
         }
         Document dcContentDocument = db.newDocument();
 
-        Element oaiDc =
-            dcContentDocument.createElementNS(
-                "http://www.openarchives.org/OAI/2.0/oai_dc/", "oai_dc:dc");
+        Element oaiDc = dcContentDocument.createElementNS("http://www.openarchives.org/OAI/2.0/oai_dc/", "oai_dc:dc");
 
-        Element dcTitle =
-            dcContentDocument.createElementNS(
-                "http://purl.org/dc/elements/1.1/", "title");
+        Element dcTitle = dcContentDocument.createElementNS("http://purl.org/dc/elements/1.1/", "title");
         dcTitle.setTextContent("Item Title");
         oaiDc.appendChild(dcTitle);
 
@@ -157,8 +143,7 @@ public class ExampleDefaultIngester {
         item.setMetadataRecords(new MetadataRecords());
         item.getMetadataRecords().add(dc);
 
-        MarshallerFactory mf =
-            MarshallerFactory.getInstance(TransportProtocol.REST);
+        MarshallerFactory mf = MarshallerFactory.getInstance(TransportProtocol.REST);
         Marshaller<Item> im = mf.getMarshaller(Item.class);
         String itemXml = im.marshalDocument(item);
 

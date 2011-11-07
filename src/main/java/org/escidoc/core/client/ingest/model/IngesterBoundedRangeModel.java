@@ -30,8 +30,7 @@ package org.escidoc.core.client.ingest.model;
 
 import javax.swing.DefaultBoundedRangeModel;
 
-public class IngesterBoundedRangeModel extends DefaultBoundedRangeModel
-    implements IngestProgressListener {
+public class IngesterBoundedRangeModel extends DefaultBoundedRangeModel implements IngestProgressListener {
 
     /**
      * 

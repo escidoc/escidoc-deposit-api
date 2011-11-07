@@ -28,7 +28,6 @@
  */
 package org.escidoc.core.client.ingest.ws;
 
-
 public class WebServiceFactory {
 
     private WebServiceFactory() {
@@ -49,8 +48,7 @@ public class WebServiceFactory {
         // ws = new MulitpartPartFormDataWebService(endpoint);
         // }
         else {
-            throw new UnsupportedOperationException(
-                "Unsupported webservice type \"" + type + "\".");
+            throw new UnsupportedOperationException("Unsupported webservice type \"" + type + "\".");
         }
 
         return ws;

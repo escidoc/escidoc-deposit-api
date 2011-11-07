@@ -31,8 +31,8 @@ package org.escidoc.core.client.ingest.filesystem;
 import org.escidoc.core.client.ingest.model.IngestProgressListener;
 
 /**
- * A helper object to count what should be ingested. An
- * {@link IngestProgressListener} can be bound to be informed about the count.
+ * A helper object to count what should be ingested. An {@link IngestProgressListener} can be bound to be informed about
+ * the count.
  * 
  * @author Frank Schwichtenberg <http://Frank.Schwichtenberg@FIZ-Karlsruhe.de>
  * 

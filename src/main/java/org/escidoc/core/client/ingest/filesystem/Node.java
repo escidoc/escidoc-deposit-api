@@ -36,8 +36,8 @@ import java.util.Vector;
 import org.escidoc.core.client.ingest.entities.ResourceEntry;
 
 /**
- * A node representing a file or directory in the local filesystem. After ingest
- * it should hold a {@link ResourceEntry} for the actual ingested resource.
+ * A node representing a file or directory in the local filesystem. After ingest it should hold a {@link ResourceEntry}
+ * for the actual ingested resource.
  * 
  * @author Frank Schwichtenberg <http://Frank.Schwichtenberg@FIZ-Karlsruhe.de>
  * 
@@ -80,8 +80,7 @@ public class Node {
     }
 
     /**
-     * Dive into directory and create a Node hierarchy representing the
-     * directory structure.
+     * Dive into directory and create a Node hierarchy representing the directory structure.
      * 
      * @throws FileNotFoundException
      *             If the file of this Node does not exist.
@@ -123,8 +122,7 @@ public class Node {
             throw new NullPointerException("A file must be set before diving.");
         }
         if (!this.file.exists()) {
-            throw new FileNotFoundException("The given file does not exist. "
-                + file.getPath());
+            throw new FileNotFoundException("The given file does not exist. " + file.getPath());
         }
     }
 

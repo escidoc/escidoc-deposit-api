@@ -46,8 +46,7 @@ import org.escidoc.core.client.ingest.exceptions.IngestException;
 import de.escidoc.core.resources.ResourceType;
 
 /**
- * Example of using {@link ByNameIngester} to ingest Content Models from a list
- * of known names.
+ * Example of using {@link ByNameIngester} to ingest Content Models from a list of known names.
  * 
  * @author Frank Schwichtenberg <Frank.Schwichtenberg@FIZ-Karlsruhe.de>
  * 
@@ -64,8 +63,8 @@ public class ContentModelsByName {
      * @throws IOException
      *             If Content Model IDs cannot be written to properties file.
      */
-    public static void main(final String[] args) throws ConfigurationException,
-        IngestException, IOException, MalformedURLException {
+    public static void main(final String[] args) throws ConfigurationException, IngestException, IOException,
+        MalformedURLException {
 
         URL infrastructureUrl = new URL(args[0]);
         String handle = args[1];
@@ -75,24 +74,20 @@ public class ContentModelsByName {
         // "InvestigationSeries Content Model" };
         List<String> names = Arrays.asList(nameArray);
 
-        Ingester ingester =
-            new ByNameIngester(infrastructureUrl, handle, names,
-                ResourceType.CONTENT_MODEL);
+        Ingester ingester = new ByNameIngester(infrastructureUrl, handle, names, ResourceType.CONTENT_MODEL);
 
         ingester.ingest();
 
         System.out.println(((ByNameIngester) ingester).getObjectIdentifier());
 
         Properties contentModelProperties = new Properties();
-        Iterator<ResourceEntry> it =
-            ((ByNameIngester) ingester).getObjectIdentifier().iterator();
+        Iterator<ResourceEntry> it = ((ByNameIngester) ingester).getObjectIdentifier().iterator();
         while (it.hasNext()) {
             ResourceEntry re = it.next();
-            contentModelProperties.setProperty(re.getTitle(),
-                re.getIdentifier());
+            contentModelProperties.setProperty(re.getTitle(), re.getIdentifier());
         }
-        contentModelProperties.store(new FileOutputStream(
-            "ContentModel.properties"), "Content Models for use with BW-eLabs");
+        contentModelProperties.store(new FileOutputStream("ContentModel.properties"),
+            "Content Models for use with BW-eLabs");
 
     }
 
