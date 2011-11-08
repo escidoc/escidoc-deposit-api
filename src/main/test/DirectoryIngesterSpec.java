@@ -26,17 +26,21 @@
  * Gesellschaft zur Foerderung der Wissenschaft e.V.
  * All rights reserved.  Use is subject to license terms.
  */
+import java.io.File;
+import java.net.URL;
+
 import org.escidoc.core.client.ingest.Ingester;
 import org.escidoc.core.client.ingest.filesystem.DirectoryIngester;
 import org.junit.Test;
-
-import java.io.File;
-import java.net.URL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.escidoc.core.client.Authentication;
 import de.escidoc.core.resources.common.properties.PublicStatus;
 
 public class DirectoryIngesterSpec {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DirectoryIngesterSpec.class);
 
     private static final String VALID_STATUS = "valid";
 
@@ -62,6 +66,9 @@ public class DirectoryIngesterSpec {
 
     @Test
     public void shouldIngestDirectoryWithOneFile() throws Exception {
+        String userHome = System.getProperty("user.home");
+        LOG.debug(userHome);
+
         // Given:
         final Ingester ingester =
             new DirectoryIngester(coreUrl, new Authentication(new URL(coreUrl), SYSADMIN, PASSWORD).getHandle(),
