@@ -30,7 +30,6 @@ package org.escidoc.core.client.ingest;
 
 import gov.loc.www.zing.srw.SearchRetrieveRequestType;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Iterator;
@@ -343,35 +342,26 @@ public abstract class AbstractIngester implements Ingester {
      */
     protected void loadConfiguration() {
 
-	try {
-	    this.context = IngestConfiguration.getInstance().get(
-		    IngestConfiguration.INGEST_PROPERTY_PREFIX + "context");
-	    this.containerContentModel = IngestConfiguration.getInstance().get(
-		    IngestConfiguration.INGEST_PROPERTY_PREFIX
-			    + "content-model.container");
-	    this.itemContentModel = IngestConfiguration.getInstance().get(
-		    IngestConfiguration.INGEST_PROPERTY_PREFIX
-			    + "content-model.item");
-	    this.initialLifecycleStatus = PublicStatus.PENDING;
-	    // IngestConfiguration.getInstance().get(
-	    // IngestConfiguration.INGEST_PROPERTY_PREFIX + "status");
-	    this.contentCategory = IngestConfiguration.getInstance().get(
-		    IngestConfiguration.INGEST_PROPERTY_PREFIX
-			    + "content-category");
-	    this.mimeType = IngestConfiguration.getInstance().get(
-		    IngestConfiguration.INGEST_PROPERTY_PREFIX + "mime-type");
-	    this.visibility = IngestConfiguration.getInstance().get(
-		    IngestConfiguration.INGEST_PROPERTY_PREFIX + "visibility");
-	    this.validStatus = IngestConfiguration.getInstance()
-		    .get(IngestConfiguration.INGEST_PROPERTY_PREFIX
-			    + "valid-status");
-	} catch (IOException e) {
-	    String msg = "Did not find configuration file. "
-		    + "This is not an error but all required "
-		    + "values must be set in the Ingester.";
-	    System.out.println(msg);
-	    LOG.info(msg, e);
-	}
+	this.context = IngestConfiguration.getInstance().get(
+		IngestConfiguration.INGEST_PROPERTY_PREFIX + "context");
+	this.containerContentModel = IngestConfiguration.getInstance().get(
+		IngestConfiguration.INGEST_PROPERTY_PREFIX
+			+ "content-model.container");
+	this.itemContentModel = IngestConfiguration.getInstance().get(
+		IngestConfiguration.INGEST_PROPERTY_PREFIX
+			+ "content-model.item");
+	this.initialLifecycleStatus = PublicStatus.PENDING;
+	// IngestConfiguration.getInstance().get(
+	// IngestConfiguration.INGEST_PROPERTY_PREFIX + "status");
+	this.contentCategory = IngestConfiguration.getInstance()
+		.get(IngestConfiguration.INGEST_PROPERTY_PREFIX
+			+ "content-category");
+	this.mimeType = IngestConfiguration.getInstance().get(
+		IngestConfiguration.INGEST_PROPERTY_PREFIX + "mime-type");
+	this.visibility = IngestConfiguration.getInstance().get(
+		IngestConfiguration.INGEST_PROPERTY_PREFIX + "visibility");
+	this.validStatus = IngestConfiguration.getInstance().get(
+		IngestConfiguration.INGEST_PROPERTY_PREFIX + "valid-status");
     }
 
     // eSciDoc Infrastructure Client Handler
