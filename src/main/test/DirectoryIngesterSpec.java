@@ -31,6 +31,7 @@ import java.net.URL;
 
 import org.escidoc.core.client.ingest.Ingester;
 import org.escidoc.core.client.ingest.filesystem.DirectoryIngester;
+import org.escidoc.core.client.ingest.model.IngesterBoundedRangeModel;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,20 @@ public class DirectoryIngesterSpec {
 
     private static final Logger LOG = LoggerFactory.getLogger(DirectoryIngesterSpec.class);
 
+    private static final String coreUrl = "http://esfedrep1.fiz-karlsruhe.de:8080";
+
+    private static final String SYSADMIN = "sysadmin";
+
+    private static final String PASSWORD = "eSciDoc";
+
+    private static final String DIRECTORY_PATH = "ingest-me";
+
+    private static final String CONTEXT_ID = "escidoc:2001";
+
+    private static final String CONTAINER_CONTENT_MODEL_ID = "escidoc:13";
+
+    private static final String ITEM_CONTENT_MODEL_ID = "escidoc:12";
+
     private static final String VALID_STATUS = "valid";
 
     private static final String PUBLIC_CONTENT_VISIBILITY = "public";
@@ -50,29 +65,15 @@ public class DirectoryIngesterSpec {
 
     private static final String CONTENT_CATEGORY = "ORIGINAL";
 
-    private static final String CONTAINER_CONTENT_MODEL_ID = "escidoc:26003";
-
-    private static final String DIRECTORY_FULLPATH = "/Users/bender/ingest-me";
-
-    private static final String coreUrl = "http://escidev4.fiz-karlsruhe.de:8080";
-
-    private static final String PASSWORD = "escidoc";
-
-    private static final String SYSADMIN = "sysadmin";
-
-    private static final String CONTEXT_ID = "escidoc:3027";
-
-    private static final String ITEM_CONTENT_MODEL_ID = "escidoc:26002";
-
     @Test
     public void shouldIngestDirectoryWithOneFile() throws Exception {
-        String userHome = System.getProperty("user.home");
-        LOG.debug(userHome);
+        String fullpath = System.getProperty("user.home") + System.getProperty("file.separator") + DIRECTORY_PATH;
+        LOG.debug("fullpath: " + fullpath);
 
         // Given:
         final Ingester ingester =
             new DirectoryIngester(coreUrl, new Authentication(new URL(coreUrl), SYSADMIN, PASSWORD).getHandle(),
-                new File(DIRECTORY_FULLPATH));
+                new File(fullpath));
         ingester.setContext(CONTEXT_ID);
         ingester.setContainerContentModel(CONTAINER_CONTENT_MODEL_ID);
         ingester.setItemContentModel(ITEM_CONTENT_MODEL_ID);
@@ -81,6 +82,7 @@ public class DirectoryIngesterSpec {
         ingester.setMimeType(PDF_MIME_TYPE);
         ingester.setVisibility(PUBLIC_CONTENT_VISIBILITY);
         ingester.setValidStatus(VALID_STATUS);
+        ingester.setIngestProgressListener(new IngesterBoundedRangeModel());
         // When:
         ingester.ingest();
         // AssertThat:

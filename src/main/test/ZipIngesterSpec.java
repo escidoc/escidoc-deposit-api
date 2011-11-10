@@ -26,7 +26,15 @@
  * Gesellschaft zur Foerderung der Wissenschaft e.V.
  * All rights reserved.  Use is subject to license terms.
  */
+import java.io.File;
+import java.net.URL;
+
+import org.escidoc.core.client.ingest.zip.ZipIngester;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.escidoc.core.client.Authentication;
 
 /**
  * CDDL HEADER START
@@ -51,19 +59,46 @@ import org.junit.Test;
 
 public class ZipIngesterSpec {
 
-    @Test
-    public void shouldOnlyTakeZipFileAsAnInput() {
-        throw new UnsupportedOperationException("Not yet implemented");
+    private static final String TARGET_URL = "http://esfedrep1.fiz-karlsruhe.de:8080/";
+
+    private static final Logger LOG = LoggerFactory.getLogger(ZipIngesterSpec.class);
+
+    private static final String RELATIVE_FILE = "tmp/ingest-zip";
+
+    // private static final String FILE_NAME = "source.zip";
+
+    private static final String FILE_NAME = "elab-content-models.zip";
+
+    // @Test
+    public void shouldOnlyTakeZipFileAsAnInput() throws Exception {
+        File zipFile = fullpath2File();
+        File targetDirectory = new File(getDirectoryPath());
+        Util.unzip(zipFile, targetDirectory);
     }
 
     @Test
-    public void shouldUnzipTheFile() throws Exception {
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void foo() throws Exception {
+        File zipFile = fullpath2File();
+        ZipIngester ingester =
+            new ZipIngester(new URL(TARGET_URL),
+                new Authentication(new URL(TARGET_URL), "sysadmin", "eSciDoc").getHandle());
+        ingester.ingest(zipFile);
     }
 
-    @Test
-    public void shouldIngestTheFile() throws Exception {
-        throw new UnsupportedOperationException("Not yet implemented");
+    private File fullpath2File() {
+        String fullpath = getDirectoryPath() + FILE_NAME;
+        LOG.debug("fullpath: " + fullpath);
+
+        File file = new File(fullpath);
+
+        if (!file.isFile()) {
+            throw new UnsupportedOperationException("Not yet implemented");
+        }
+        return file;
     }
 
+    private String getDirectoryPath() {
+        return System.getProperty("user.home") + System.getProperty("file.separator") + RELATIVE_FILE
+            + System.getProperty("file.separator");
+    }
 }
