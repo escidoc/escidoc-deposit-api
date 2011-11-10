@@ -28,17 +28,17 @@
  */
 package org.escidoc.core.client.ingest.zip;
 
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
-import org.apache.commons.io.IOUtils;
+import org.escidoc.core.client.ingest.AbstractIngester;
+import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
+import org.escidoc.core.client.ingest.exceptions.IngestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,7 @@ import de.escidoc.core.client.exceptions.EscidocException;
 import de.escidoc.core.client.exceptions.InternalClientException;
 import de.escidoc.core.client.exceptions.TransportException;
 
-public class ZipIngester {
+public class ZipIngester extends AbstractIngester {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZipIngester.class);
 
@@ -65,33 +65,33 @@ public class ZipIngester {
         client.setHandle(handle);
     }
 
-    public void ingest(File zipFile) throws ZipException, IOException, EscidocException, InternalClientException,
-        TransportException {
-        Preconditions.checkNotNull(zipFile, "zipFile is null: %s", zipFile);
-
-        ZipFile zf = new ZipFile(zipFile);
-        Enumeration<? extends ZipEntry> entries = zf.entries();
-        while (entries.hasMoreElements()) {
-            ZipEntry entry = entries.nextElement();
-            LOG.debug("Extracting: " + entry);
-
+    public void ingest(InputStream inputStream) throws EscidocException, InternalClientException, TransportException,
+        UnsupportedEncodingException, IOException {
+        Preconditions.checkNotNull(inputStream, "inputStream is null: %s", inputStream);
+        ZipInputStream zis = new ZipInputStream(inputStream);
+        ZipEntry entry;
+        while ((entry = zis.getNextEntry()) != null) {
             if (entry.isDirectory()) {
-                throw new UnsupportedOperationException(entry + " is a directory. Not supported.");
+                throw new IllegalArgumentException("Extracting ZIP File that contains directory is not supported");
             }
 
-            ingest(zf.getInputStream(entry));
+            LOG.debug("Extracting: " + entry);
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            while ((bytesRead = zis.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            ingest(new String(outputStream.toByteArray(), UTF_8_ENCODING));
         }
     }
 
-    private void ingest(InputStream inputStream) throws IOException, EscidocException, InternalClientException,
-        TransportException {
-        String result = client.ingest(stream2String(inputStream));
-        LOG.debug("result: " + result);
+    private void ingest(String resourceXml) throws EscidocException, InternalClientException, TransportException {
+        client.ingest(resourceXml);
     }
 
-    private static String stream2String(InputStream inputStream) throws IOException {
-        StringWriter writer = new StringWriter();
-        IOUtils.copy(inputStream, writer, UTF_8_ENCODING);
-        return writer.toString();
+    @Override
+    protected void ingestHook() throws ConfigurationException, IngestException {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 }

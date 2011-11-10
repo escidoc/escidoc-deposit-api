@@ -110,20 +110,6 @@ public interface Ingester {
      * getters/setters
      */
 
-    // /**
-    // * Default is true.
-    // *
-    // * @return
-    // */
-    // boolean getSaveDirectoryAsContainer();
-    //
-    // /**
-    // * Default is true.
-    // *
-    // * @param saveDirectoryAsContainer
-    // */
-    // void setSaveDirectoryAsContainer(boolean saveDirectoryAsContainer);
-
     /**
      * @return The ID of the Context that will be set for an ingested resource.
      */
