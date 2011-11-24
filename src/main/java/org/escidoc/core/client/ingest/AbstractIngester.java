@@ -30,6 +30,7 @@ package org.escidoc.core.client.ingest;
 
 import gov.loc.www.zing.srw.SearchRetrieveRequestType;
 
+import java.io.File;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Iterator;
@@ -109,6 +110,8 @@ public abstract class AbstractIngester implements Ingester {
     private ContentModelHandlerClientInterface contentModelHandler;
 
     public boolean isCanceled = false;
+
+    protected File fitsHome;
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractIngester.class.getName());
 
@@ -318,6 +321,9 @@ public abstract class AbstractIngester implements Ingester {
             IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "visibility");
         this.validStatus =
             IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "valid-status");
+        String string = IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "fits-home");
+        this.fitsHome =
+            new File(string);
     }
 
     // eSciDoc Infrastructure Client Handler
@@ -525,4 +531,15 @@ public abstract class AbstractIngester implements Ingester {
     public final void setIngestProgressListener(IngestProgressListener ingestProgressListener) {
         this.ingestProgressListener = ingestProgressListener;
     }
+
+    @Override
+    public File getFitsHome() {
+        return fitsHome;
+    }
+
+    @Override
+    public void setFitsHome(File fitsHome) {
+        this.fitsHome = fitsHome;
+    }
+
 }

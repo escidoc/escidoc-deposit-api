@@ -1,4 +1,5 @@
 package org.escidoc.core.client.ingest;
+
 /**
  * CDDL HEADER START
  *
@@ -30,9 +31,9 @@ package org.escidoc.core.client.ingest;
 import java.io.File;
 import java.net.URL;
 
-import org.escidoc.core.client.ingest.Ingester;
 import org.escidoc.core.client.ingest.filesystem.DirectoryIngester;
 import org.escidoc.core.client.ingest.model.IngesterBoundedRangeModel;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,7 @@ public class DirectoryIngesterSpec {
 
     private static final String CONTENT_CATEGORY = "ORIGINAL";
 
+    @Ignore
     @Test
     public void shouldIngestDirectoryWithOneFile() throws Exception {
         String fullpath = System.getProperty("user.home") + System.getProperty("file.separator") + DIRECTORY_PATH;

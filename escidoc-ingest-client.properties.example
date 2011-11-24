@@ -37,3 +37,5 @@ escidoc.client.ingest.valid-status=valid
 
 # Base URLs of eSciDoc Infrastructures to use (comma separated)
 escidoc.client.ingest.infrastructure-urls=http://localhost:8080,http://escidev4:8080
+
+escidoc.client.ingest.fits-home=src/main/resources

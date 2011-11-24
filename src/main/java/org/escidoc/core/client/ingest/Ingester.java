@@ -28,6 +28,7 @@
  */
 package org.escidoc.core.client.ingest;
 
+import java.io.File;
 import java.util.List;
 
 import org.escidoc.core.client.ingest.entities.ResourceEntry;
@@ -205,4 +206,8 @@ public interface Ingester {
      * @see IngesterBoundedRangeModel
      */
     void setIngestProgressListener(IngestProgressListener ingestProgressListener);
+
+    File getFitsHome();
+
+    void setFitsHome(File fitsHome);
 }

@@ -1,4 +1,5 @@
 package org.escidoc.core.client.ingest;
+
 /**
  * CDDL HEADER START
  *
@@ -34,6 +35,7 @@ import java.net.URL;
 
 import org.escidoc.core.client.ingest.zip.Util;
 import org.escidoc.core.client.ingest.zip.ZipIngester;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,11 +73,13 @@ public class ZipIngesterSpec {
 
     private static final String FILE_NAME = "elab-content-models.zip";
 
-    // @Test
+    @Ignore
+    @Test
     public void shouldOnlyTakeZipFileAsAnInput() throws Exception {
         Util.unzip(getZipFile(), getSourceDir());
     }
 
+    @Ignore
     @Test
     public void shouldIngestDirectlyFromZipFile() throws Exception {
         new ZipIngester(new URL(TARGET_URL), new Authentication(new URL(TARGET_URL), "sysadmin", "eSciDoc").getHandle())
