@@ -33,6 +33,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -52,13 +56,11 @@ import de.escidoc.core.resources.common.reference.ContentModelRef;
 import de.escidoc.core.resources.common.reference.ContextRef;
 import edu.harvard.hul.ois.fits.exceptions.FitsException;
 
-public class FileIngester {
+public class FileIngesterV2 {
 
     private ContentModelRef contentModelRef;
 
     private ContextRef contextRef;
-
-    private File source;
 
     private IngestHandlerClientInterface ingestClient;
 
@@ -66,13 +68,10 @@ public class FileIngester {
 
     private TechnicalMetadataExtractor extractor;
 
-    public FileIngester(File source, ContextRef contextRef, ContentModelRef contentModelRef, URI serviceUri,
-        String userHandle, File fitsHome) throws MalformedURLException, InternalClientException {
-        this.source = source;
+    public FileIngesterV2(ContextRef contextRef, ContentModelRef contentModelRef, URI serviceUri, String userHandle,
+        File fitsHome) throws MalformedURLException, InternalClientException {
         this.contextRef = contextRef;
         this.contentModelRef = contentModelRef;
-
-        Preconditions.checkArgument(source.isFile(), source + " is not a file");
 
         stagingClient = new StagingHandlerClient(serviceUri.toURL());
         ingestClient = new IngestHandlerClient(serviceUri.toURL());
@@ -83,13 +82,50 @@ public class FileIngester {
 
     }
 
-    public String ingest() throws InternalClientException, FitsException, SAXException, IOException,
+    public String ingest(File source) throws InternalClientException, FitsException, SAXException, IOException,
         ParserConfigurationException, EscidocException, TransportException {
+
+        Preconditions.checkArgument(source.isFile(), source + " is not a file");
 
         Element extractedTme = extractor.extract(source);
         URL contentUrl = stagingClient.upload(source);
 
         return ingestClient.ingest(Utils.itemToString(new ItemBuilder.Builder(contextRef, contentModelRef)
             .withName(source.getName()).withContent(contentUrl, extractedTme).build()));
+    }
+
+    public String ingestAsync(final File source) throws InternalClientException, FitsException, SAXException,
+        IOException, ParserConfigurationException, EscidocException, TransportException, InterruptedException,
+        ExecutionException {
+        FutureTask<Element> future = new FutureTask<Element>(new Callable<Element>() {
+            @Override
+            public Element call() {
+                try {
+                    return extractor.extract(source);
+                }
+                catch (FitsException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                catch (SAXException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                catch (ParserConfigurationException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
+        Executors.newFixedThreadPool(10).execute(future);
+        URL contentUrl = stagingClient.upload(source);
+
+        return ingestClient.ingest(Utils.itemToString(new ItemBuilder.Builder(contextRef, contentModelRef)
+            .withName(source.getName()).withContent(contentUrl, future.get()).build()));
     }
 }
