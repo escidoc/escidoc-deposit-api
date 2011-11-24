@@ -28,23 +28,11 @@
  */
 package org.escidoc.core.client.ingest.filesystem;
 
-import org.escidoc.core.client.ingest.AbstractIngester;
-import org.escidoc.core.client.ingest.exceptions.AlreadyIngestedException;
-import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
-import org.escidoc.core.client.ingest.exceptions.IngestException;
-import org.escidoc.core.client.ingest.ws.WebService;
-import org.escidoc.core.client.ingest.ws.exceptions.ExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -52,6 +40,19 @@ import java.util.Vector;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
+import org.escidoc.core.client.ingest.AbstractIngester;
+import org.escidoc.core.client.ingest.exceptions.AlreadyIngestedException;
+import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
+import org.escidoc.core.client.ingest.exceptions.IngestException;
+import org.escidoc.core.tme.TechnicalMetadataExtractor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
+import com.google.common.base.Preconditions;
 
 import de.escidoc.core.client.TransportProtocol;
 import de.escidoc.core.client.exceptions.EscidocException;
@@ -75,6 +76,7 @@ import de.escidoc.core.resources.om.item.component.Component;
 import de.escidoc.core.resources.om.item.component.ComponentContent;
 import de.escidoc.core.resources.om.item.component.ComponentProperties;
 import de.escidoc.core.resources.om.item.component.Components;
+import edu.harvard.hul.ois.fits.exceptions.FitsException;
 
 /**
  * An Ingester which is able to ingest (load) data from filesystem into an eSciDoc Infrastructure. For every file an
@@ -508,32 +510,24 @@ public class DirectoryIngester extends AbstractIngester {
      * @return A metadatarecord object containing technical metadata.
      */
     protected MetadataRecord createContentMetadata(File file) {
+        Preconditions.checkNotNull(file, "file is null: %s", file);
 
         MetadataRecord metadata = new MetadataRecord("escidoc");
 
         try {
-            Collection<WebService> webservices = new ArrayList<WebService>();
-
-            // .getContentWebservices();
-            Iterator<WebService> it = webservices.iterator();
-            while (it.hasNext() && !isCanceled) {
-                WebService ws = it.next();
-                ws.addParams(file);
-                LOG.error("calling webservice for " + file.getPath());
-                Object result = ws.call();
-                if (result instanceof Document) {
-                    Document doc = (Document) result;
-                    metadata.setContent(doc.getDocumentElement());
-                }
-            }
+            metadata.setContent(new TechnicalMetadataExtractor(getFitsHome()).extract(file));
         }
-        catch (MalformedURLException e) {
-            // FIXME
-            throw new RuntimeException(e);
+        catch (FitsException e) {
+            LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
         }
-        catch (ExecutionException e) {
-            // FIXME
-            throw new RuntimeException(e);
+        catch (SAXException e) {
+            LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
+        }
+        catch (IOException e) {
+            LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
+        }
+        catch (ParserConfigurationException e) {
+            LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
         }
 
         return metadata;
