@@ -30,11 +30,13 @@ package org.escidoc.core.client.ingest.model;
 
 public interface IngestProgressListener {
 
-    void setSum(int sum);
+	void setSum(int sum);
 
-    void setIngested(int count);
+	void setIngested(int count);
 
-    void incrementIngested();
+	int getIngested();
 
-    void incrementSum();
+	void incrementIngested();
+
+	void incrementSum();
 }
