@@ -2,14 +2,14 @@ package org.escidoc.core.client.ingest;
 
 import static org.junit.Assert.assertTrue;
 
+import org.escidoc.core.tme.FileIngesterV2;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.Date;
-
-import org.escidoc.core.tme.FileIngesterV2;
-import org.junit.Ignore;
-import org.junit.Test;
 
 import de.escidoc.core.client.Authentication;
 import de.escidoc.core.resources.common.reference.ContentModelRef;
@@ -17,10 +17,11 @@ import de.escidoc.core.resources.common.reference.ContextRef;
 
 public class FileIngestV2Spec {
 
-    private static final String INPUT_FULL_PATH = "/home/chh/ingest-me/1.3/Rest_api_doc_OM_Item.1.3.pdf";
-
     // private static final String INPUT_FULL_PATH =
-    // "/Users/bender/ingest-me/SWORD-Intro.pdf";
+    // "/home/chh/ingest-me/1.3/Rest_api_doc_OM_Item.1.3.pdf";
+
+    private static final String INPUT_FULL_PATH =
+        "/Users/bender/ingest-me/pictures/gnome-icon-theme-2.18.0/32x32/apps/accessories-calculator.png";
 
     private static final File fitsHome = new File("src/main/resources");
 

@@ -1,4 +1,5 @@
 package org.escidoc.core.client.ingest.zip;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;

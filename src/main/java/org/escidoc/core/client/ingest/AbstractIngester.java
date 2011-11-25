@@ -322,8 +322,7 @@ public abstract class AbstractIngester implements Ingester {
         this.validStatus =
             IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "valid-status");
         String string = IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "fits-home");
-        this.fitsHome =
-            new File(string);
+        this.fitsHome = new File(string);
     }
 
     // eSciDoc Infrastructure Client Handler
