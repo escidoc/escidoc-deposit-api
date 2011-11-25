@@ -3,8 +3,9 @@ package org.escidoc.core.client.ingest;
 import static org.junit.Assert.assertTrue;
 
 import org.escidoc.core.tme.FileIngesterV2;
-import org.escidoc.core.tme.IngestResult;
+import org.escidoc.core.tme.SucessfulIngestResult;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,14 +66,14 @@ public class FileIngestV2Spec {
         ingester = new FileIngesterV2(contextRef, contentModelRef, serviceUri, userHandle, fitsHome);
     }
 
-    // @Ignore
+    @Ignore
     @Test
     public void shouldIngestFileAndItsTechnicalMetadata() throws Exception {
         for (int i = 0; i < 4; i++) {
             long start = new Date().getTime();
 
             // When:
-            IngestResult result = ingester.ingest(source);
+            SucessfulIngestResult result = ingester.ingest(source);
 
             // AssertThat:
             assertTrue(!result.getId().isEmpty());
@@ -83,14 +84,14 @@ public class FileIngestV2Spec {
         }
     }
 
-    // @Ignore
+    @Ignore
     @Test
     public void shouldIngestFileAndItsTechnicalMetadataAsync() throws Exception {
         for (int i = 0; i < 4; i++) {
             long start = new Date().getTime();
 
             // When:
-            IngestResult result = ingester.ingestAsync(source);
+            SucessfulIngestResult result = ingester.ingestAsync(source);
 
             // AssertThat:
             assertTrue(!result.getId().isEmpty());

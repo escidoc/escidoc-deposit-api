@@ -29,6 +29,7 @@ package org.escidoc.core.client.ingest;
 import static org.junit.Assert.assertTrue;
 
 import org.escidoc.core.tme.DirectoryIngesterV2;
+import org.escidoc.core.tme.IngestResult;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -78,7 +79,7 @@ public class DirectoryIngesterV2Spec {
         // When:
         DirectoryIngesterV2 ingester =
             new DirectoryIngesterV2(contextRef, contentModelRef, serviceUri, userHandle, fitsHome);
-        List<String> result = ingester.ingest(source);
+        List<IngestResult> result = ingester.ingestAsync(source);
 
         // AssertThat:
         assertTrue(!result.isEmpty());
@@ -103,7 +104,7 @@ public class DirectoryIngesterV2Spec {
         // When:
         DirectoryIngesterV2 ingester =
             new DirectoryIngesterV2(contextRef, contentModelRef, serviceUri, userHandle, fitsHome);
-        List<String> result = ingester.ingest(source);
+        List<IngestResult> result = ingester.ingestAsync(source);
 
         // AssertThat:
         assertTrue(!result.isEmpty());

@@ -94,7 +94,7 @@ public class FileIngesterV2 {
         executorService = Executors.newFixedThreadPool(10);
     }
 
-    public IngestResult ingest(File source) throws InternalClientException, FitsException, SAXException, IOException,
+    public SucessfulIngestResult ingest(File source) throws InternalClientException, FitsException, SAXException, IOException,
         ParserConfigurationException, EscidocException, TransportException {
         Preconditions.checkArgument(source.isFile(), source + " is not a file");
 
@@ -104,7 +104,7 @@ public class FileIngesterV2 {
         URL contentUrl = upload(source);
 
         LOG.debug("Ingesting..." + source.getName());
-        return new IngestResult(ingestClient.ingest(Utils.itemToString(new ItemBuilder.Builder(contextRef,
+        return new SucessfulIngestResult(ingestClient.ingest(Utils.itemToString(new ItemBuilder.Builder(contextRef,
             contentModelRef).withName(source.getName()).withContent(contentUrl, extractedTme).build())));
     }
 
@@ -114,7 +114,7 @@ public class FileIngesterV2 {
         return contentUrl;
     }
 
-    public IngestResult ingestAsync(final File source) throws InternalClientException, EscidocException,
+    public SucessfulIngestResult ingestAsync(final File source) throws InternalClientException, EscidocException,
         TransportException, InterruptedException, ExecutionException {
 
         LOG.debug("Extracting metadata..." + source.getName());
@@ -123,7 +123,7 @@ public class FileIngesterV2 {
         URL contentUrl = upload(source);
 
         LOG.debug("Ingesting..." + source.getName());
-        return new IngestResult(ingestClient.ingest(Utils.itemToString(new ItemBuilder.Builder(contextRef,
+        return new SucessfulIngestResult(ingestClient.ingest(Utils.itemToString(new ItemBuilder.Builder(contextRef,
             contentModelRef).withName(source.getName()).withContent(contentUrl, asyncTask.get()).build())));
     }
 

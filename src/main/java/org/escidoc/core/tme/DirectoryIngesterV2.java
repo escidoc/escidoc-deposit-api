@@ -30,128 +30,85 @@ import com.google.common.base.Preconditions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
-import javax.xml.parsers.ParserConfigurationException;
-
-import de.escidoc.core.client.IngestHandlerClient;
-import de.escidoc.core.client.StagingHandlerClient;
 import de.escidoc.core.client.exceptions.EscidocException;
 import de.escidoc.core.client.exceptions.InternalClientException;
 import de.escidoc.core.client.exceptions.TransportException;
 import de.escidoc.core.resources.common.reference.ContentModelRef;
 import de.escidoc.core.resources.common.reference.ContextRef;
-import edu.harvard.hul.ois.fits.exceptions.FitsException;
 
 public class DirectoryIngesterV2 {
 
     private final static Logger LOG = LoggerFactory.getLogger(DirectoryIngesterV2.class);
 
-    private ContextRef contextRef;
-
-    private ContentModelRef contentModelRef;
-
-    private StagingHandlerClient stagingClient;
-
-    private IngestHandlerClient ingestClient;
-
-    private TechnicalMetadataExtractor extractor;
-
     private FileIngesterV2 fileIngesterV2;
 
     public DirectoryIngesterV2(ContextRef contextRef, ContentModelRef contentModelRef, URI serviceUri,
         String userHandle, File fitsHome) throws MalformedURLException, InternalClientException {
-        this.contextRef = contextRef;
-        this.contentModelRef = contentModelRef;
 
-        stagingClient = new StagingHandlerClient(serviceUri.toURL());
-        ingestClient = new IngestHandlerClient(serviceUri.toURL());
-        extractor = new TechnicalMetadataExtractor(fitsHome);
-
-        stagingClient.setHandle(userHandle);
-        ingestClient.setHandle(userHandle);
         fileIngesterV2 = new FileIngesterV2(contextRef, contentModelRef, serviceUri, userHandle, fitsHome);
     }
 
-    // 96449
-    // time: 84031
+    public List<IngestResult> ingestAsync(File sourceDir) throws InterruptedException, ExecutionException {
+        Preconditions.checkArgument(sourceDir.isDirectory(), sourceDir + " is not a Directory");
+        List<FutureTask<IngestResult>> taskList = new ArrayList<FutureTask<IngestResult>>();
 
-    public List<String> ingest(File source) throws InternalClientException, FitsException, SAXException, IOException,
-        ParserConfigurationException, EscidocException, TransportException, InterruptedException, ExecutionException {
-
-        Preconditions.checkArgument(source.isDirectory(), source + " is not a Directory");
-        File[] listFiles = source.listFiles();
-        ArrayList<String> list = new ArrayList<String>();
-        ArrayList<FutureTask> taskList = new ArrayList<FutureTask>();
-        for (final File file : listFiles) {
-            FutureTask<String> future = new FutureTask<String>(new Callable<String>() {
-                @Override
-                public String call() {
-                    try {
-
-                        return fileIngesterV2.ingestAsync(file);
-                    }
-                    catch (FitsException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (SAXException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (ParserConfigurationException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (InternalClientException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (EscidocException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (TransportException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (ExecutionException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-            });
-            Executors.newFixedThreadPool(10).execute(future);
-            taskList.add(future);
-            // String result = future.get();
-            // list.add(result);
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        for (final File file : sourceDir.listFiles()) {
+            FutureTask<IngestResult> fileIngestTask = createAsyncTask(file);
+            executorService.execute(fileIngestTask);
+            taskList.add(fileIngestTask);
         }
-        for (FutureTask<String> futureTask : taskList) {
-            String result = futureTask.get();
+
+        List<IngestResult> list = new ArrayList<IngestResult>();
+        for (FutureTask<IngestResult> futureTask : taskList) {
+            IngestResult result = futureTask.get();
             LOG.debug("Finished..." + result);
             list.add(result);
         }
         return list;
     }
 
+    private FutureTask<IngestResult> createAsyncTask(final File source) {
+        FutureTask<IngestResult> future = new FutureTask<IngestResult>(new Callable<IngestResult>() {
+            @Override
+            public IngestResult call() {
+                try {
+                    return fileIngesterV2.ingestAsync(source);
+                }
+                catch (InternalClientException e) {
+                    LOG.error("Fail to ingest file: " + source.getAbsolutePath(), e);
+                    return new FailIngest(source, e);
+                }
+                catch (EscidocException e) {
+                    LOG.error("Fail to ingest file: " + source.getAbsolutePath(), e);
+                    return new FailIngest(source, e);
+                }
+                catch (TransportException e) {
+                    LOG.error("Fail to ingest file: " + source.getAbsolutePath(), e);
+                    return new FailIngest(source, e);
+                }
+                catch (InterruptedException e) {
+                    LOG.error("Ingest file: " + source.getAbsolutePath() + " is interuppted", e);
+                    return new FailIngest(source, e);
+                }
+                catch (ExecutionException e) {
+                    LOG.error("Can not ingest file: " + source.getAbsolutePath(), e);
+                    return new FailIngest(source, e);
+                }
+            }
+        });
+        return future;
+    }
 }
