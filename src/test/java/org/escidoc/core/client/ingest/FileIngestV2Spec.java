@@ -3,8 +3,11 @@ package org.escidoc.core.client.ingest;
 import static org.junit.Assert.assertTrue;
 
 import org.escidoc.core.tme.FileIngesterV2;
-import org.junit.Ignore;
+import org.escidoc.core.tme.IngestResult;
+import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -16,6 +19,8 @@ import de.escidoc.core.resources.common.reference.ContentModelRef;
 import de.escidoc.core.resources.common.reference.ContextRef;
 
 public class FileIngestV2Spec {
+
+    private final static Logger LOG = LoggerFactory.getLogger(FileIngestV2Spec.class);
 
     // private static final String INPUT_FULL_PATH =
     // "/home/chh/ingest-me/1.3/Rest_api_doc_OM_Item.1.3.pdf";
@@ -35,52 +40,64 @@ public class FileIngestV2Spec {
 
     private static final String ITEM_CONTENT_MODEL = "escidoc:12";
 
+    private Authentication authentication;
+
+    private ContextRef contextRef;
+
+    private ContentModelRef contentModelRef;
+
+    private String userHandle;
+
+    private File source;
+
+    private URI serviceUri;
+
+    private FileIngesterV2 ingester;
+
+    @Before
+    public void setup() throws Exception {
+        authentication = new Authentication(new URL(SERVICE_URL), SYSADMIN, SYSADMIN_PASSWORD);
+        contextRef = new ContextRef(CONTEXT_ID);
+        contentModelRef = new ContentModelRef(ITEM_CONTENT_MODEL);
+        userHandle = authentication.getHandle();
+        source = new File(INPUT_FULL_PATH);
+        serviceUri = new URI(SERVICE_URL);
+        ingester = new FileIngesterV2(contextRef, contentModelRef, serviceUri, userHandle, fitsHome);
+    }
+
     // @Ignore
     @Test
     public void shouldIngestFileAndItsTechnicalMetadata() throws Exception {
-        long start = new Date().getTime();
+        for (int i = 0; i < 4; i++) {
+            long start = new Date().getTime();
 
-        // Given:
-        Authentication authentication = new Authentication(new URL(SERVICE_URL), SYSADMIN, SYSADMIN_PASSWORD);
-        ContextRef contextRef = new ContextRef(CONTEXT_ID);
-        ContentModelRef contentModelRef = new ContentModelRef(ITEM_CONTENT_MODEL);
-        String userHandle = authentication.getHandle();
-        File source = new File(INPUT_FULL_PATH);
-        URI serviceUri = new URI(SERVICE_URL);
+            // When:
+            IngestResult result = ingester.ingest(source);
 
-        // When:
-        FileIngesterV2 ingester = new FileIngesterV2(contextRef, contentModelRef, serviceUri, userHandle, fitsHome);
-        String result = ingester.ingest(source);
+            // AssertThat:
+            assertTrue(!result.getId().isEmpty());
+            LOG.debug("result" + result);
 
-        // AssertThat:
-        assertTrue(!result.isEmpty());
-        System.out.println("result" + result);
-
-        long end = new Date().getTime();
-        System.out.println("time: " + (end - start));
+            long end = new Date().getTime();
+            LOG.debug("total time: " + (end - start) + " ms");
+        }
     }
 
-    @Ignore
+    // @Ignore
     @Test
     public void shouldIngestFileAndItsTechnicalMetadataAsync() throws Exception {
-        long start = new Date().getTime();
-        // Given:
-        Authentication authentication = new Authentication(new URL(SERVICE_URL), SYSADMIN, SYSADMIN_PASSWORD);
-        ContextRef contextRef = new ContextRef(CONTEXT_ID);
-        ContentModelRef contentModelRef = new ContentModelRef(ITEM_CONTENT_MODEL);
-        String userHandle = authentication.getHandle();
-        File source = new File(INPUT_FULL_PATH);
-        URI serviceUri = new URI(SERVICE_URL);
+        for (int i = 0; i < 4; i++) {
+            long start = new Date().getTime();
 
-        // When:
-        FileIngesterV2 ingester = new FileIngesterV2(contextRef, contentModelRef, serviceUri, userHandle, fitsHome);
-        String result = ingester.ingestAsync(source);
+            // When:
+            IngestResult result = ingester.ingestAsync(source);
 
-        // AssertThat:
-        assertTrue(!result.isEmpty());
-        System.out.println("result" + result);
+            // AssertThat:
+            assertTrue(!result.getId().isEmpty());
+            LOG.debug("result" + result);
 
-        long end = new Date().getTime();
-        System.out.println("time: " + (end - start));
+            long end = new Date().getTime();
+            LOG.debug("total time: " + (end - start) + " ms");
+        }
     }
 }

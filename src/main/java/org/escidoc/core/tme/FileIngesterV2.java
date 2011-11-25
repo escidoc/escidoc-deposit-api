@@ -98,25 +98,33 @@ public class FileIngesterV2 {
         ParserConfigurationException, EscidocException, TransportException {
         Preconditions.checkArgument(source.isFile(), source + " is not a file");
 
+        LOG.debug("Extracting metadata..." + source.getName());
         Element extractedTme = extractor.extract(source);
-        URL contentUrl = stagingClient.upload(source);
 
+        URL contentUrl = upload(source);
+
+        LOG.debug("Ingesting..." + source.getName());
         return new IngestResult(ingestClient.ingest(Utils.itemToString(new ItemBuilder.Builder(contextRef,
             contentModelRef).withName(source.getName()).withContent(contentUrl, extractedTme).build())));
     }
 
-    public String ingestAsync(final File source) throws InternalClientException, EscidocException, TransportException,
-        InterruptedException, ExecutionException {
+    private URL upload(File source) throws EscidocException, InternalClientException, TransportException {
+        LOG.debug("Uploading file to staging area..." + source.getName());
+        URL contentUrl = stagingClient.upload(source);
+        return contentUrl;
+    }
+
+    public IngestResult ingestAsync(final File source) throws InternalClientException, EscidocException,
+        TransportException, InterruptedException, ExecutionException {
 
         LOG.debug("Extracting metadata..." + source.getName());
         FutureTask<Element> asyncTask = extractMetadataAsync(source);
 
-        LOG.debug("Uploading file to staging area..." + source.getName());
-        URL contentUrl = stagingClient.upload(source);
+        URL contentUrl = upload(source);
 
         LOG.debug("Ingesting..." + source.getName());
-        return ingestClient.ingest(Utils.itemToString(new ItemBuilder.Builder(contextRef, contentModelRef)
-            .withName(source.getName()).withContent(contentUrl, asyncTask.get()).build()));
+        return new IngestResult(ingestClient.ingest(Utils.itemToString(new ItemBuilder.Builder(contextRef,
+            contentModelRef).withName(source.getName()).withContent(contentUrl, asyncTask.get()).build())));
     }
 
     private FutureTask<Element> extractMetadataAsync(final File source) {
