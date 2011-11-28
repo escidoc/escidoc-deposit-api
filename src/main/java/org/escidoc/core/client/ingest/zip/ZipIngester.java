@@ -33,12 +33,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.escidoc.core.client.ingest.AbstractIngester;
 import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
 import org.escidoc.core.client.ingest.exceptions.IngestException;
+import org.escidoc.core.tme.IngestResult;
+import org.escidoc.core.tme.SucessfulIngestResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,11 +69,12 @@ public class ZipIngester extends AbstractIngester {
         client.setHandle(handle);
     }
 
-    public void ingest(InputStream inputStream) throws EscidocException, InternalClientException, TransportException,
-        UnsupportedEncodingException, IOException {
+    public List<IngestResult> ingest(InputStream inputStream) throws EscidocException, InternalClientException,
+        TransportException, UnsupportedEncodingException, IOException {
         Preconditions.checkNotNull(inputStream, "inputStream is null: %s", inputStream);
         ZipInputStream zis = new ZipInputStream(inputStream);
         ZipEntry entry;
+        List<IngestResult> resultList = new ArrayList<IngestResult>();
         while ((entry = zis.getNextEntry()) != null) {
             if (entry.isDirectory()) {
                 throw new IllegalArgumentException("Extracting ZIP File that contains directory is not supported");
@@ -82,12 +87,14 @@ public class ZipIngester extends AbstractIngester {
             while ((bytesRead = zis.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
             }
-            ingest(new String(outputStream.toByteArray(), UTF_8_ENCODING));
+            resultList.add(ingest(new String(outputStream.toByteArray(), UTF_8_ENCODING)));
         }
+        return resultList;
     }
 
-    private void ingest(String resourceXml) throws EscidocException, InternalClientException, TransportException {
-        client.ingest(resourceXml);
+    private IngestResult ingest(String resourceXml) throws EscidocException, InternalClientException,
+        TransportException {
+        return new SucessfulIngestResult(client.ingest(resourceXml));
     }
 
     @Override
