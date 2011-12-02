@@ -66,6 +66,11 @@ public class IngesterBoundedRangeModel extends DefaultBoundedRangeModel implemen
     }
 
     @Override
+    public int getIngested() {
+        return this.getValue();
+    }
+
+    @Override
     synchronized public void incrementIngested() {
         this.setValue(this.getValue() + 1);
         System.out.println("" + getValue() + "/" + getMaximum());

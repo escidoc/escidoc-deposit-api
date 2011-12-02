@@ -96,8 +96,8 @@ public class FileIngesterV2 {
         executorService = Executors.newFixedThreadPool(10);
     }
 
-    public SucessfulIngestResult ingest(File source) throws InternalClientException, FitsException, SAXException, IOException,
-        ParserConfigurationException, EscidocException, TransportException {
+    public SucessfulIngestResult ingest(File source) throws InternalClientException, FitsException, SAXException,
+        IOException, ParserConfigurationException, EscidocException, TransportException {
         Preconditions.checkArgument(source.isFile(), source + " is not a file");
 
         LOG.debug("Extracting metadata..." + source.getName());

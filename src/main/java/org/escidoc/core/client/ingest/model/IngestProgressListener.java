@@ -34,6 +34,8 @@ public interface IngestProgressListener {
 
     void setIngested(int count);
 
+    int getIngested();
+
     void incrementIngested();
 
     void incrementSum();

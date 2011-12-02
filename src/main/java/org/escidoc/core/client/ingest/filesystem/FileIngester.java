@@ -74,9 +74,9 @@ import de.escidoc.core.resources.om.item.component.Components;
 import edu.harvard.hul.ois.fits.exceptions.FitsException;
 
 /**
- * An Ingester which is able to ingest (load) data from filesystem into an eSciDoc Infrastructure. For every file an
- * eSciDoc Item with the file as content is created and for every a container is created which has subdirectories and
- * included files as members.
+ * An Ingester which is able to ingest (load) data from filesystem into an eSciDoc Infrastructure. For every file (or
+ * local path to a file) an eSciDoc Item with the file as content is created. If the ID of an existing Container is
+ * given as Parent-ID the created Items are added as members to that Container.
  * 
  * @see org.escidoc.core.client.ingest.AbstractIngester
  * @see org.escidoc.core.client.ingest.DefaultIngester
@@ -94,6 +94,8 @@ public class FileIngester extends AbstractIngester {
     private List<String> itemIDs;
 
     private String parentId;
+
+    private boolean forceCreate = false;
 
     public void addFile(File f) {
         files.add(f);
@@ -169,18 +171,24 @@ public class FileIngester extends AbstractIngester {
             throw new ConfigurationException("No files to ingest.");
         }
         itemIDs = new Vector<String>();
-        Count c = new Count(ingestProgressListener);
+        if (this.ingestProgressListener != null) {
+            this.ingestProgressListener.setSum(files.size());
+        }
 
         for (File file : files) {
             try {
                 ingestItem(file);
-                c.increment();
+                if (this.ingestProgressListener != null) {
+                    this.ingestProgressListener.incrementIngested();
+                }
             }
             catch (EscidocException e) {
                 String msg = "Item failed " + file;
                 LOG.error("Item failed :" + msg, e);
                 LOG.debug("Ingest failed, filename:" + file);
-                LOG.debug("Ingest failed, itemNumber:" + c.getValue(), e);
+                if (this.ingestProgressListener != null) {
+                    LOG.debug("Ingest failed, itemNumber:" + this.ingestProgressListener.getIngested() + 1, e);
+                }
                 // errorNode = n;
                 // isError=true;
             }
@@ -221,7 +229,7 @@ public class FileIngester extends AbstractIngester {
      * Ingests an Item from a Node that represents a file. Overwrite this method in order to change the implementation
      * of creating an Item from a file node.
      * 
-     * @param n
+     * @param contentFile
      *            A node representing a file.
      * 
      * @throws InternalClientException
@@ -231,7 +239,7 @@ public class FileIngester extends AbstractIngester {
      * @throws TransportException
      *             If an transport error in the eSciDoc Client Library occurs.
      */
-    protected void ingestItem(File n) throws EscidocException, InternalClientException, TransportException {
+    protected void ingestItem(File contentFile) throws EscidocException, InternalClientException, TransportException {
         Item item = new Item();
 
         // properties
@@ -243,8 +251,9 @@ public class FileIngester extends AbstractIngester {
         item.getProperties().setPublicStatus(getInitialLifecycleStatus());
         item.getProperties().setPublicStatusComment("Item ingested via Ingest Client API");
 
+        // add generated descriptive matadata
         item.setMetadataRecords(new MetadataRecords());
-        item.getMetadataRecords().add(createOaiDcMetadata(n));
+        item.getMetadataRecords().add(createOaiDcMetadata(contentFile));
 
         // content
         Component component = new Component();
@@ -254,7 +263,8 @@ public class FileIngester extends AbstractIngester {
         component.getProperties().setVisibility(getVisibility());
         component.getProperties().setMimeType(getMimeType());
 
-        MetadataRecord contentMd = createContentMetadata(n);
+        // add generated technical metadata
+        MetadataRecord contentMd = createContentMetadata(contentFile);
         if (contentMd != null && contentMd.getContent() != null) {
             component.setMetadataRecords(new MetadataRecords());
             component.getMetadataRecords().add(contentMd);
@@ -263,38 +273,43 @@ public class FileIngester extends AbstractIngester {
         ComponentContent content = new ComponentContent();
         content.setStorage(StorageType.INTERNAL_MANAGED);
 
-        URL stagingFile = getStagingHandlerClient().upload(n);
+        URL stagingFile = getStagingHandlerClient().upload(contentFile);
 
         content.setXLinkHref(stagingFile.toString());
         component.setContent(content);
         item.setComponents(new Components());
         item.getComponents().add(component);
 
-        // ingest
-        MarshallerFactory mf = MarshallerFactory.getInstance(TransportProtocol.REST);
-        Marshaller<Item> im = mf.getMarshaller(Item.class);
-        String itemXml = im.marshalDocument(item);
-        String result;
-        try {
-            result = getIngestHandlerClient().ingest(itemXml);
-        }
-        catch (EscidocException e) {
-            System.out.println(itemXml);
-            throw e;
-        }
-        // store result
-        System.out.println("result[" + result + "]");
-        Marshaller<Result> rm = mf.getMarshaller(Result.class);
-        Result r = rm.unmarshalDocument(result);
-        String itemId = r.getFirst().getTextContent();
-        // Item created = this.getItemHandlerClient().retrieve(itemId);
-        itemIDs.add(itemId);
-        // n.getResource().setIdentifier(itemId);
-        // n.getResource().setObjectType("item");
-        // n.getResource().setTitle(n.getName());
-        // n.getResource().setHref("/ir/item/" + itemId);
-        // n.setIsIngested(true);
+        // create or ingest? different rights are needed. Reason is BW-eLab
+        // depoit of experiment data.
 
+        String itemId = null;
+        if (this.forceCreate) {
+            // create
+            Item createdItem = getItemHandlerClient().create(item);
+            itemId = createdItem.getObjid();
+        }
+        else {
+            // ingest
+            MarshallerFactory mf = MarshallerFactory.getInstance(TransportProtocol.REST);
+            Marshaller<Item> im = mf.getMarshaller(Item.class);
+            String itemXml = im.marshalDocument(item);
+            String result;
+            try {
+                result = getIngestHandlerClient().ingest(itemXml);
+            }
+            catch (EscidocException e) {
+                System.out.println(itemXml);
+                throw e;
+            }
+            // store result
+            System.out.println("result[" + result + "]");
+            Marshaller<Result> rm = mf.getMarshaller(Result.class);
+            Result r = rm.unmarshalDocument(result);
+            itemId = r.getFirst().getTextContent();
+        }
+
+        itemIDs.add(itemId);
     }
 
     /**
@@ -347,22 +362,26 @@ public class FileIngester extends AbstractIngester {
 
         MetadataRecord metadata = new MetadataRecord("escidoc");
 
-        try {
-            metadata.setContent(new TechnicalMetadataExtractor(getFitsHome()).extract(file));
-        }
-        catch (FitsException e) {
-            LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
-        }
-        catch (SAXException e) {
-            LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
-        }
-        catch (IOException e) {
-            LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
-        }
-        catch (ParserConfigurationException e) {
-            LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
-        }
+        // FIXME no longer optional
+        if (getFitsHome() != null) {
 
+            try {
+                metadata.setContent(new TechnicalMetadataExtractor(getFitsHome()).extract(file));
+            }
+            catch (FitsException e) {
+                LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
+            }
+            catch (SAXException e) {
+                LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
+            }
+            catch (IOException e) {
+                LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
+            }
+            catch (ParserConfigurationException e) {
+                LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
+            }
+
+        }
         return metadata;
 
     }
@@ -379,5 +398,9 @@ public class FileIngester extends AbstractIngester {
         if (files.isEmpty()) {
             throw new ConfigurationException("Files must be set.");
         }
+    }
+
+    public void setForceCreate(boolean forceCreate) {
+        this.forceCreate = forceCreate;
     }
 }
