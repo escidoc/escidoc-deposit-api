@@ -28,6 +28,19 @@
  */
 package org.escidoc.core.client.ingest.filesystem;
 
+import com.google.common.base.Preconditions;
+
+import org.escidoc.core.client.ingest.AbstractIngester;
+import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
+import org.escidoc.core.client.ingest.exceptions.IngestException;
+import org.escidoc.core.tme.TechnicalMetadataExtractor;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -38,18 +51,6 @@ import java.util.Vector;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.escidoc.core.client.ingest.AbstractIngester;
-import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
-import org.escidoc.core.client.ingest.exceptions.IngestException;
-import org.escidoc.core.tme.TechnicalMetadataExtractor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
-import com.google.common.base.Preconditions;
 
 import de.escidoc.core.client.ContainerHandlerClient;
 import de.escidoc.core.client.TransportProtocol;
@@ -65,6 +66,7 @@ import de.escidoc.core.resources.common.TaskParam;
 import de.escidoc.core.resources.common.properties.PublicStatus;
 import de.escidoc.core.resources.common.reference.ContentModelRef;
 import de.escidoc.core.resources.common.reference.ContextRef;
+import de.escidoc.core.resources.om.container.Container;
 import de.escidoc.core.resources.om.item.Item;
 import de.escidoc.core.resources.om.item.StorageType;
 import de.escidoc.core.resources.om.item.component.Component;
@@ -209,19 +211,28 @@ public class FileIngester extends AbstractIngester {
         }
 
         if (parentId != null) {
+            setChildren();
+        }
+    }
+
+    private void setChildren() throws IngestException {
+        try {
+            ContainerHandlerClient chc = new ContainerHandlerClient(geteSciDocInfrastructureBaseUrl());
+            chc.setHandle(getUserHandle());
+            Container parent = chc.retrieve(parentId);
+            DateTime parentLastModificationDate = parent.getLastModificationDate();
             TaskParam taskParam = new TaskParam();
+
             for (String itemId : itemIDs) {
                 LOG.debug("Adding to parent[" + parentId + "]: " + itemId);
+                taskParam.setLastModificationDate(parentLastModificationDate);
                 taskParam.addResourceRef(itemId);
             }
-            try {
-                ContainerHandlerClient chc = new ContainerHandlerClient(geteSciDocInfrastructureBaseUrl());
-                chc.addMembers(parentId, taskParam);
-                LOG.debug("...added.");
-            }
-            catch (Exception e) {
-                throw new IngestException(e);
-            }
+            chc.addMembers(parentId, taskParam);
+            LOG.debug("...added.");
+        }
+        catch (Exception e) {
+            throw new IngestException(e);
         }
     }
 

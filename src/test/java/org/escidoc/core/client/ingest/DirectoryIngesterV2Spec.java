@@ -34,6 +34,8 @@ import org.escidoc.core.tme.DirectoryIngesterV2;
 import org.escidoc.core.tme.IngestResult;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -46,6 +48,8 @@ import de.escidoc.core.resources.common.reference.ContentModelRef;
 import de.escidoc.core.resources.common.reference.ContextRef;
 
 public class DirectoryIngesterV2Spec {
+
+    private final static Logger LOG = LoggerFactory.getLogger(DirectoryIngesterV2Spec.class);
 
     // private static final String INPUT_FULL_PATH = "/home/chh/ingest-me/1.3";
 
@@ -65,6 +69,15 @@ public class DirectoryIngesterV2Spec {
     private static final String CONTEXT_ID = "escidoc:136";
 
     private static final String ITEM_CONTENT_MODEL = "escidoc:12";
+
+    @Test
+    public void shouldGenerateHandle() throws Exception {
+        long start = new Date().getTime();
+        // Given:
+        Authentication authentication = new Authentication(new URL(SERVICE_URL), SYSADMIN, SYSADMIN_PASSWORD);
+        String handle = authentication.getHandle();
+        LOG.debug("handle: " + handle);
+    }
 
     @Ignore
     @Test
@@ -91,7 +104,7 @@ public class DirectoryIngesterV2Spec {
         System.out.println("time: " + (end - start));
     }
 
-    // @Ignore
+    @Ignore
     @Test
     public void shouldIngestDirectory() throws Exception {
         long start = new Date().getTime();
