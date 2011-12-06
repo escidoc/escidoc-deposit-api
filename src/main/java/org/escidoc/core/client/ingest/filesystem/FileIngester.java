@@ -28,7 +28,16 @@
  */
 package org.escidoc.core.client.ingest.filesystem;
 
-import com.google.common.base.Preconditions;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+import java.util.Vector;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.escidoc.core.client.ingest.AbstractIngester;
 import org.escidoc.core.client.ingest.exceptions.ConfigurationException;
@@ -41,16 +50,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
-import java.util.Vector;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import com.google.common.base.Preconditions;
 
 import de.escidoc.core.client.ContainerHandlerClient;
 import de.escidoc.core.client.TransportProtocol;
@@ -76,9 +76,11 @@ import de.escidoc.core.resources.om.item.component.Components;
 import edu.harvard.hul.ois.fits.exceptions.FitsException;
 
 /**
- * An Ingester which is able to ingest (load) data from filesystem into an eSciDoc Infrastructure. For every file (or
- * local path to a file) an eSciDoc Item with the file as content is created. If the ID of an existing Container is
- * given as Parent-ID the created Items are added as members to that Container.
+ * An Ingester which is able to ingest (load) data from filesystem into an
+ * eSciDoc Infrastructure. For every file (or local path to a file) an eSciDoc
+ * Item with the file as content is created. If the ID of an existing Container
+ * is given as Parent-ID the created Items are added as members to that
+ * Container.
  * 
  * @see org.escidoc.core.client.ingest.AbstractIngester
  * @see org.escidoc.core.client.ingest.DefaultIngester
@@ -89,7 +91,8 @@ import edu.harvard.hul.ois.fits.exceptions.FitsException;
 
 public class FileIngester extends AbstractIngester {
 
-    static final Logger LOG = LoggerFactory.getLogger(FileIngester.class.getName());
+    static final Logger LOG = LoggerFactory.getLogger(FileIngester.class
+        .getName());
 
     private List<File> files;
 
@@ -99,27 +102,21 @@ public class FileIngester extends AbstractIngester {
 
     private boolean forceCreate = false;
 
-    public void addFile(File f) {
-        files.add(f);
-    }
-
-    public void addFile(String f) {
-        this.addFile(new File(f));
-    }
-
     /**
      * @param eSciDocInfrastructureBaseUrl
      *            The HTTP URL of an eSciDoc Infrastructure.
      * @param userHandle
      *            The authorization handle of a logged in user.
      * @param parentId
-     *            The ID of the Container in the eSciDoc Infrastructure the files should be added to. If null the files
-     *            are created without a parent.
+     *            The ID of the Container in the eSciDoc Infrastructure the
+     *            files should be added to. If null the files are created
+     *            without a parent.
      * 
      * @throws NullPointerException
      *             If one of the parameters is null.
      */
-    public FileIngester(String eSciDocInfrastructureBaseUrl, String userHandle, String parentId) {
+    public FileIngester(String eSciDocInfrastructureBaseUrl, String userHandle,
+        String parentId) {
         super();
         init(eSciDocInfrastructureBaseUrl, userHandle, parentId);
     }
@@ -135,20 +132,26 @@ public class FileIngester extends AbstractIngester {
      * @throws NullPointerException
      *             If one of the parameters is null.
      */
-    private void init(String eSciDocInfrastructureBaseUrl, String userHandle, String parentId) {
+    private void init(
+        String eSciDocInfrastructureBaseUrl, String userHandle, String parentId) {
         if (eSciDocInfrastructureBaseUrl == null) {
-            throw new NullPointerException("Param eSciDocInfrastructureBaseUrl must not be null.");
+            throw new NullPointerException(
+                "Param eSciDocInfrastructureBaseUrl must not be null.");
         }
         if (userHandle == null) {
             throw new NullPointerException("Param userHandle must not be null.");
         }
 
         try {
-            seteSciDocInfrastructureBaseUrl(new URL(eSciDocInfrastructureBaseUrl));
+            seteSciDocInfrastructureBaseUrl(new URL(
+                eSciDocInfrastructureBaseUrl));
             setUserHandle(userHandle);
         }
         catch (ConfigurationException e) {
-            LOG.error("Can not set infrastructure URL or user handle creating new Ingester.", e);
+            LOG
+                .error(
+                    "Can not set infrastructure URL or user handle creating new Ingester.",
+                    e);
         }
         catch (MalformedURLException mfue) {
             LOG.error("Invalid infrastructure URL.", mfue);
@@ -164,10 +167,12 @@ public class FileIngester extends AbstractIngester {
      * 
      * @see org.escidoc.core.client.ingest.AbstractIngester#ingestHook()
      * 
-     * @throws NullPointerException If the file of this Node is <code>null</code>.
+     * @throws NullPointerException If the file of this Node is
+     * <code>null</code>.
      */
     @Override
-    protected final void ingestHook() throws ConfigurationException, IngestException {
+    protected final void ingestHook() throws ConfigurationException,
+        IngestException {
 
         if (files.isEmpty()) {
             throw new ConfigurationException("No files to ingest.");
@@ -179,6 +184,7 @@ public class FileIngester extends AbstractIngester {
 
         for (File file : files) {
             try {
+                // FIXME exception handling
                 ingestItem(file);
                 if (this.ingestProgressListener != null) {
                     this.ingestProgressListener.incrementIngested();
@@ -189,7 +195,8 @@ public class FileIngester extends AbstractIngester {
                 LOG.error("Item failed :" + msg, e);
                 LOG.debug("Ingest failed, filename:" + file);
                 if (this.ingestProgressListener != null) {
-                    LOG.debug("Ingest failed, itemNumber:" + this.ingestProgressListener.getIngested() + 1, e);
+                    LOG.debug("Ingest failed, itemNumber:"
+                        + this.ingestProgressListener.getIngested() + 1, e);
                 }
                 // errorNode = n;
                 // isError=true;
@@ -217,10 +224,12 @@ public class FileIngester extends AbstractIngester {
 
     private void setChildren() throws IngestException {
         try {
-            ContainerHandlerClient chc = new ContainerHandlerClient(geteSciDocInfrastructureBaseUrl());
+            ContainerHandlerClient chc =
+                new ContainerHandlerClient(geteSciDocInfrastructureBaseUrl());
             chc.setHandle(getUserHandle());
             Container parent = chc.retrieve(parentId);
-            DateTime parentLastModificationDate = parent.getLastModificationDate();
+            DateTime parentLastModificationDate =
+                parent.getLastModificationDate();
             TaskParam taskParam = new TaskParam();
 
             for (String itemId : itemIDs) {
@@ -237,8 +246,9 @@ public class FileIngester extends AbstractIngester {
     }
 
     /**
-     * Ingests an Item from a Node that represents a file. Overwrite this method in order to change the implementation
-     * of creating an Item from a file node.
+     * Ingests an Item from a Node that represents a file. Overwrite this method
+     * in order to change the implementation of creating an Item from a file
+     * node.
      * 
      * @param contentFile
      *            A node representing a file.
@@ -250,17 +260,20 @@ public class FileIngester extends AbstractIngester {
      * @throws TransportException
      *             If an transport error in the eSciDoc Client Library occurs.
      */
-    protected void ingestItem(File contentFile) throws EscidocException, InternalClientException, TransportException {
+    protected void ingestItem(File contentFile) throws EscidocException,
+        InternalClientException, TransportException {
         Item item = new Item();
 
         // properties
-        item.getProperties().setContentModel(new ContentModelRef(getItemContentModel()));
+        item.getProperties().setContentModel(
+            new ContentModelRef(getItemContentModel()));
         item.getProperties().setContext(new ContextRef(getContext()));
         if (getInitialLifecycleStatus().equals(PublicStatus.RELEASED)) {
             item.getProperties().setPid("no:pid/test");
         }
         item.getProperties().setPublicStatus(getInitialLifecycleStatus());
-        item.getProperties().setPublicStatusComment("Item ingested via Ingest Client API");
+        item.getProperties().setPublicStatusComment(
+            "Item ingested via Ingest Client API");
 
         // add generated descriptive matadata
         item.setMetadataRecords(new MetadataRecords());
@@ -302,7 +315,8 @@ public class FileIngester extends AbstractIngester {
         }
         else {
             // ingest
-            MarshallerFactory mf = MarshallerFactory.getInstance(TransportProtocol.REST);
+            MarshallerFactory mf =
+                MarshallerFactory.getInstance(TransportProtocol.REST);
             Marshaller<Item> im = mf.getMarshaller(Item.class);
             String itemXml = im.marshalDocument(item);
             String result;
@@ -324,10 +338,11 @@ public class FileIngester extends AbstractIngester {
     }
 
     /**
-     * Creates OAI Dublic Core metadata for a filesystem node which represents a file or directory. For files this is
-     * called from {@link FileIngester#ingestItem(Node)} and for directories from
-     * {@link FileIngester#ingestContainer(Node)}. Overwrite this method in order to implement specialized creation of
-     * Item and Container metadata.
+     * Creates OAI Dublic Core metadata for a filesystem node which represents a
+     * file or directory. For files this is called from
+     * {@link FileIngester#ingestItem(Node)} and for directories from
+     * {@link FileIngester#ingestContainer(Node)}. Overwrite this method in
+     * order to implement specialized creation of Item and Container metadata.
      * 
      * @param n
      *            The node representing a file or directory.
@@ -346,9 +361,13 @@ public class FileIngester extends AbstractIngester {
         }
         Document dcContentDocument = db.newDocument();
 
-        Element oaiDc = dcContentDocument.createElementNS("http://www.openarchives.org/OAI/2.0/oai_dc/", "oai_dc:dc");
+        Element oaiDc =
+            dcContentDocument.createElementNS(
+                "http://www.openarchives.org/OAI/2.0/oai_dc/", "oai_dc:dc");
 
-        Element dcTitle = dcContentDocument.createElementNS("http://purl.org/dc/elements/1.1/", "title");
+        Element dcTitle =
+            dcContentDocument.createElementNS(
+                "http://purl.org/dc/elements/1.1/", "title");
         dcTitle.setTextContent(n.getName());
         oaiDc.appendChild(dcTitle);
 
@@ -360,9 +379,11 @@ public class FileIngester extends AbstractIngester {
     }
 
     /**
-     * Creates technical metadata for a files. This is called from {@link FileIngester#ingestItem(Node)} and the result
-     * (if not <code>null</code>) is stored as metadata in the componenent holding the file as content inside the
-     * ingested Item. Overwrite this method in order to implement specialized creation of technical metadata.
+     * Creates technical metadata for a files. This is called from
+     * {@link FileIngester#ingestItem(Node)} and the result (if not
+     * <code>null</code>) is stored as metadata in the componenent holding the
+     * file as content inside the ingested Item. Overwrite this method in order
+     * to implement specialized creation of technical metadata.
      * 
      * @param file
      *            The file to create technical metadata for.
@@ -377,19 +398,24 @@ public class FileIngester extends AbstractIngester {
         if (getFitsHome() != null) {
 
             try {
-                metadata.setContent(new TechnicalMetadataExtractor(getFitsHome()).extract(file));
+                metadata.setContent(new TechnicalMetadataExtractor(
+                    getFitsHome()).extract(file));
             }
             catch (FitsException e) {
-                LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
+                LOG.warn(
+                    "Fail to extract technical metadata " + e.getMessage(), e);
             }
             catch (SAXException e) {
-                LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
+                LOG.warn(
+                    "Fail to extract technical metadata " + e.getMessage(), e);
             }
             catch (IOException e) {
-                LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
+                LOG.warn(
+                    "Fail to extract technical metadata " + e.getMessage(), e);
             }
             catch (ParserConfigurationException e) {
-                LOG.warn("Fail to extract technical metadata " + e.getMessage(), e);
+                LOG.warn(
+                    "Fail to extract technical metadata " + e.getMessage(), e);
             }
 
         }
@@ -413,5 +439,17 @@ public class FileIngester extends AbstractIngester {
 
     public void setForceCreate(boolean forceCreate) {
         this.forceCreate = forceCreate;
+    }
+
+    public void addFile(File f) {
+        files.add(f);
+    }
+
+    public void addFile(String f) {
+        this.addFile(new File(f));
+    }
+
+    public List<String> getItemIDs() {
+        return new Vector<String>(itemIDs);
     }
 }
