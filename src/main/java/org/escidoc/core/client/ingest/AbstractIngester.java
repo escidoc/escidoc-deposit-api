@@ -65,8 +65,9 @@ import de.escidoc.core.resources.common.properties.PublicStatus;
 import de.escidoc.core.resources.om.context.Context;
 
 /**
- * Abstract implementation of <code>org.escidoc.client.ignest.Ingester</code>. Provides an abstract hook method which
- * must be overridden specifying the concrete ingest procedure.
+ * Abstract implementation of <code>org.escidoc.client.ignest.Ingester</code>.
+ * Provides an abstract hook method which must be overridden specifying the
+ * concrete ingest procedure.
  * 
  * @see org.escidoc.core.client.ingest.DefaultIngester
  * 
@@ -113,24 +114,27 @@ public abstract class AbstractIngester implements Ingester {
 
     protected File fitsHome;
 
-    private static final Logger LOG = LoggerFactory.getLogger(AbstractIngester.class.getName());
+    private static final Logger LOG = LoggerFactory
+        .getLogger(AbstractIngester.class.getName());
 
     /**
-     * Scince the eSciDoc Infrastructure 1.2.x does not support lists of Content Model this method returns the
-     * configured default Content Models.
+     * Scince the eSciDoc Infrastructure 1.2.x does not support lists of Content
+     * Model this method returns the configured default Content Models.
      * 
      * @see org.escidoc.core.client.ingest.Ingester#getContentModels()
      */
     @Override
-    public final List<ResourceEntry> getContentModels() throws EscidocException, InternalClientException,
-        TransportException {
+    public final List<ResourceEntry> getContentModels()
+        throws EscidocException, InternalClientException, TransportException {
         List<ResourceEntry> result = new Vector<ResourceEntry>();
 
-        ContentModelHandlerClientInterface cmc = new ContentModelHandlerClient(eSciDocInfrastructureBaseUrl);
+        ContentModelHandlerClientInterface cmc =
+            new ContentModelHandlerClient(eSciDocInfrastructureBaseUrl);
         cmc.setHandle(userHandle);
 
         SearchRetrieveRequestType request = new SearchRetrieveRequestType();
-        Collection<ContentModel> contextList = cmc.retrieveContentModelsAsList(request);
+        Collection<ContentModel> contextList =
+            cmc.retrieveContentModelsAsList(request);
         Iterator<ContentModel> contextIt = contextList.iterator();
         while (contextIt.hasNext()) {
             ContentModel context = contextIt.next();
@@ -151,10 +155,12 @@ public abstract class AbstractIngester implements Ingester {
      * @see org.escidoc.core.client.ingest.Ingester#getContexts()
      */
     @Override
-    public final List<ResourceEntry> getContexts() throws InternalClientException, EscidocException, TransportException {
+    public final List<ResourceEntry> getContexts()
+        throws InternalClientException, EscidocException, TransportException {
         List<ResourceEntry> result = new Vector<ResourceEntry>();
 
-        ContextHandlerClientInterface cc = new ContextHandlerClient(eSciDocInfrastructureBaseUrl);
+        ContextHandlerClientInterface cc =
+            new ContextHandlerClient(eSciDocInfrastructureBaseUrl);
         cc.setHandle(userHandle);
 
         SearchRetrieveRequestType request = new SearchRetrieveRequestType();
@@ -211,7 +217,8 @@ public abstract class AbstractIngester implements Ingester {
         result.add(PublicStatus.SUBMITTED);
         result.add(PublicStatus.RELEASED);
 
-        if (getInitialLifecycleStatus() != null && !result.contains(getInitialLifecycleStatus())) {
+        if (getInitialLifecycleStatus() != null
+            && !result.contains(getInitialLifecycleStatus())) {
             result.remove(getInitialLifecycleStatus());
             result.add(0, getInitialLifecycleStatus());
         }
@@ -220,23 +227,24 @@ public abstract class AbstractIngester implements Ingester {
     }
 
     /**
-     * Template method for ingest. Use <code>ingestHook()</code> to implement your ingest procedure.
+     * Template method for ingest. Use <code>ingestHook()</code> to implement
+     * your ingest procedure.
      * 
      * @see org.escidoc.core.client.ingest.Ingester#ingest()
      */
     @Override
     public final void ingest() throws ConfigurationException, IngestException {
         try {
-            setIngestStarted(true);
+            setIngestStarted();
             checkConfiguration();
             ingestHook();
         }
         catch (ConfigurationException e) {
-            setIngestStarted(false);
+            setIngestStoped();
             throw e;
         }
         catch (IngestException e) {
-            setIngestStarted(false);
+            setIngestStoped();
             throw e;
         }
     }
@@ -248,7 +256,8 @@ public abstract class AbstractIngester implements Ingester {
      * @throws IngestException
      *             If an error occurs while ingesting.
      */
-    protected abstract void ingestHook() throws ConfigurationException, IngestException;
+    protected abstract void ingestHook() throws ConfigurationException,
+        IngestException;
 
     /**
      * Checks if the Ingester is sufficient configured.
@@ -259,7 +268,8 @@ public abstract class AbstractIngester implements Ingester {
     public void checkConfiguration() throws ConfigurationException {
 
         if (eSciDocInfrastructureBaseUrl == null) {
-            throw new ConfigurationException("eSciDocInfrastructureBaseUrl must be set.");
+            throw new ConfigurationException(
+                "eSciDocInfrastructureBaseUrl must be set.");
         }
 
         if (userHandle == null || userHandle.trim().length() == 0) {
@@ -270,8 +280,10 @@ public abstract class AbstractIngester implements Ingester {
             throw new ConfigurationException("Context must be set.");
         }
 
-        if (containerContentModel == null || containerContentModel.trim().length() == 0) {
-            throw new ConfigurationException("containerContentModel must be set.");
+        if (containerContentModel == null
+            || containerContentModel.trim().length() == 0) {
+            throw new ConfigurationException(
+                "containerContentModel must be set.");
         }
 
         if (itemContentModel == null || itemContentModel.trim().length() == 0) {
@@ -283,7 +295,8 @@ public abstract class AbstractIngester implements Ingester {
         }
 
         if (initialLifecycleStatus == null) {
-            throw new ConfigurationException("initialLifecycleStatus must be set.");
+            throw new ConfigurationException(
+                "initialLifecycleStatus must be set.");
         }
 
         if (mimeType == null || mimeType.trim().length() == 0) {
@@ -295,7 +308,8 @@ public abstract class AbstractIngester implements Ingester {
         }
 
         if (validStatus == null || validStatus.trim().length() == 0) {
-            throw new ConfigurationException("Content valid status must be set.");
+            throw new ConfigurationException(
+                "Content valid status must be set.");
         }
 
     }
@@ -305,23 +319,37 @@ public abstract class AbstractIngester implements Ingester {
      */
     protected void loadConfiguration() {
 
-        this.context = IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "context");
+        this.context =
+            IngestConfiguration.getInstance().get(
+                IngestConfiguration.INGEST_PROPERTY_PREFIX + "context");
         this.containerContentModel =
             IngestConfiguration.getInstance().get(
-                IngestConfiguration.INGEST_PROPERTY_PREFIX + "content-model.container");
+                IngestConfiguration.INGEST_PROPERTY_PREFIX
+                    + "content-model.container");
         this.itemContentModel =
-            IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "content-model.item");
+            IngestConfiguration.getInstance().get(
+                IngestConfiguration.INGEST_PROPERTY_PREFIX
+                    + "content-model.item");
         this.initialLifecycleStatus = PublicStatus.PENDING;
         // IngestConfiguration.getInstance().get(
         // IngestConfiguration.INGEST_PROPERTY_PREFIX + "status");
         this.contentCategory =
-            IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "content-category");
-        this.mimeType = IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "mime-type");
+            IngestConfiguration
+                .getInstance().get(
+                    IngestConfiguration.INGEST_PROPERTY_PREFIX
+                        + "content-category");
+        this.mimeType =
+            IngestConfiguration.getInstance().get(
+                IngestConfiguration.INGEST_PROPERTY_PREFIX + "mime-type");
         this.visibility =
-            IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "visibility");
+            IngestConfiguration.getInstance().get(
+                IngestConfiguration.INGEST_PROPERTY_PREFIX + "visibility");
         this.validStatus =
-            IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "valid-status");
-        String string = IngestConfiguration.getInstance().get(IngestConfiguration.INGEST_PROPERTY_PREFIX + "fits-home");
+            IngestConfiguration.getInstance().get(
+                IngestConfiguration.INGEST_PROPERTY_PREFIX + "valid-status");
+        String string =
+            IngestConfiguration.getInstance().get(
+                IngestConfiguration.INGEST_PROPERTY_PREFIX + "fits-home");
         if (string != null) {
             this.fitsHome = new File(string);
         }
@@ -330,80 +358,95 @@ public abstract class AbstractIngester implements Ingester {
     // eSciDoc Infrastructure Client Handler
 
     /**
-     * Returns a handler client object in order to access the underlying eSciDoc Infrastructure.
+     * Returns a handler client object in order to access the underlying eSciDoc
+     * Infrastructure.
      * 
      * @return The IngestHandlerClient of this Ingester.
      * @throws InternalClientException
      *             If an internal error in the eSciDoc Client Library occurs.
      */
-    protected final IngestHandlerClientInterface getIngestHandlerClient() throws InternalClientException {
+    protected final IngestHandlerClientInterface getIngestHandlerClient()
+        throws InternalClientException {
         // Ingest Handler
         if (ingestHandler == null) {
-            ingestHandler = new IngestHandlerClient(geteSciDocInfrastructureBaseUrl());
+            ingestHandler =
+                new IngestHandlerClient(geteSciDocInfrastructureBaseUrl());
             ingestHandler.setHandle(getUserHandle());
         }
         return ingestHandler;
     }
 
     /**
-     * Returns a handler client object in order to access the underlying eSciDoc Infrastructure.
+     * Returns a handler client object in order to access the underlying eSciDoc
+     * Infrastructure.
      * 
      * @return The ContainerHandlerClient of this Ingester.
      * @throws InternalClientException
      *             If an internal error in the eSciDoc Client Library occurs.
      */
-    protected final ContainerHandlerClientInterface getContainerHandlerClient() throws InternalClientException {
+    protected final ContainerHandlerClientInterface getContainerHandlerClient()
+        throws InternalClientException {
         // Container Handler
         if (containerHandler == null) {
-            containerHandler = new ContainerHandlerClient(geteSciDocInfrastructureBaseUrl());
+            containerHandler =
+                new ContainerHandlerClient(geteSciDocInfrastructureBaseUrl());
             containerHandler.setHandle(getUserHandle());
         }
         return containerHandler;
     }
 
     /**
-     * Returns a handler client object in order to access the underlying eSciDoc Infrastructure.
+     * Returns a handler client object in order to access the underlying eSciDoc
+     * Infrastructure.
      * 
      * @return The ItemHandlerClient of this Ingester.
      * @throws InternalClientException
      *             If an internal error in the eSciDoc Client Library occurs.
      */
-    protected final ItemHandlerClientInterface getItemHandlerClient() throws InternalClientException {
+    protected final ItemHandlerClientInterface getItemHandlerClient()
+        throws InternalClientException {
         // Item Handler
         if (itemHandler == null) {
-            itemHandler = new ItemHandlerClient(geteSciDocInfrastructureBaseUrl());
+            itemHandler =
+                new ItemHandlerClient(geteSciDocInfrastructureBaseUrl());
             itemHandler.setHandle(getUserHandle());
         }
         return itemHandler;
     }
 
     /**
-     * Returns a handler client object in order to access the underlying eSciDoc Infrastructure.
+     * Returns a handler client object in order to access the underlying eSciDoc
+     * Infrastructure.
      * 
      * @return The ContentModelHandlerClientInterface of this Ingester.
      * @throws InternalClientException
      *             If an internal error in the eSciDoc Client Library occurs.
      */
-    protected final ContentModelHandlerClientInterface getContentModelHandlerClient() throws InternalClientException {
+    protected final ContentModelHandlerClientInterface getContentModelHandlerClient()
+        throws InternalClientException {
         // Item Handler
         if (contentModelHandler == null) {
-            contentModelHandler = new ContentModelHandlerClient(geteSciDocInfrastructureBaseUrl());
+            contentModelHandler =
+                new ContentModelHandlerClient(geteSciDocInfrastructureBaseUrl());
             contentModelHandler.setHandle(getUserHandle());
         }
         return contentModelHandler;
     }
 
     /**
-     * Returns a handler client object in order to access the underlying eSciDoc Infrastructure.
+     * Returns a handler client object in order to access the underlying eSciDoc
+     * Infrastructure.
      * 
      * @return The StagingHandlerClient of this Ingester.
      * @throws InternalClientException
      *             If an internal error in the eSciDoc Client Library occurs.
      */
-    protected final StagingHandlerClientInterface getStagingHandlerClient() throws InternalClientException {
+    protected final StagingHandlerClientInterface getStagingHandlerClient()
+        throws InternalClientException {
         // Staging Handler
         if (stagingHandler == null) {
-            stagingHandler = new StagingHandlerClient(geteSciDocInfrastructureBaseUrl());
+            stagingHandler =
+                new StagingHandlerClient(geteSciDocInfrastructureBaseUrl());
             stagingHandler.setHandle(getUserHandle());
         }
         return stagingHandler;
@@ -415,7 +458,8 @@ public abstract class AbstractIngester implements Ingester {
         return userHandle;
     }
 
-    protected final void setUserHandle(String userHandle) throws ConfigurationException {
+    protected final void setUserHandle(String userHandle)
+        throws ConfigurationException {
         if (this.userHandle != null) {
             throw new ConfigurationException("User handle must not be changed.");
         }
@@ -426,10 +470,11 @@ public abstract class AbstractIngester implements Ingester {
         return eSciDocInfrastructureBaseUrl;
     }
 
-    protected final void seteSciDocInfrastructureBaseUrl(final URL eSciDocInfrastructureBaseUrl)
-        throws ConfigurationException {
+    protected final void seteSciDocInfrastructureBaseUrl(
+        final URL eSciDocInfrastructureBaseUrl) throws ConfigurationException {
         if (this.eSciDocInfrastructureBaseUrl != null) {
-            throw new ConfigurationException("The URL of the underlying eSciDoc Infrastructure must not be changed.");
+            throw new ConfigurationException(
+                "The URL of the underlying eSciDoc Infrastructure must not be changed.");
         }
         this.eSciDocInfrastructureBaseUrl = eSciDocInfrastructureBaseUrl;
     }
@@ -438,11 +483,29 @@ public abstract class AbstractIngester implements Ingester {
         return ingestStarted;
     }
 
-    protected final void setIngestStarted(boolean ingestStarted) throws ConfigurationException {
+    /**
+     * @param ingestStarted
+     * @throws ConfigurationException
+     * @deprecated Use setIngestStarted() or setIngestStoped() instead.
+     */
+    @Deprecated
+    protected final void setIngestStarted(boolean ingestStarted)
+        throws ConfigurationException {
         if (ingestStarted && isIngestStarted()) {
             throw new ConfigurationException("Ingest was already started.");
         }
         this.ingestStarted = ingestStarted;
+    }
+
+    protected final void setIngestStarted() throws ConfigurationException {
+        if (this.isIngestStarted()) {
+            throw new ConfigurationException("Ingest was already started.");
+        }
+        this.ingestStarted = true;
+    }
+
+    protected final void setIngestStoped() {
+        this.ingestStarted = false;
     }
 
     @Override
@@ -494,7 +557,8 @@ public abstract class AbstractIngester implements Ingester {
     }
 
     @Override
-    public final void setInitialLifecycleStatus(PublicStatus initialLifecycleStatus) {
+    public final void setInitialLifecycleStatus(
+        PublicStatus initialLifecycleStatus) {
         this.initialLifecycleStatus = initialLifecycleStatus;
     }
 
@@ -529,7 +593,8 @@ public abstract class AbstractIngester implements Ingester {
     }
 
     @Override
-    public final void setIngestProgressListener(IngestProgressListener ingestProgressListener) {
+    public final void setIngestProgressListener(
+        IngestProgressListener ingestProgressListener) {
         this.ingestProgressListener = ingestProgressListener;
     }
 
