@@ -1,4 +1,4 @@
-= eSciDoc Ingest Client API =
+== eSciDoc Ingest Client API ==
 
 The eSciDoc Ingest Client API supports ingesting resources into the eSciDoc 
 Infrastructure from different sources. It extends the eSciDoc Java Client 
